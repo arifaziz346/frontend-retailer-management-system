@@ -1,0 +1,1 @@
+function u(n){if(!n)return"";const r=new Date(n);return isNaN(r)?"":r.toISOString().split("T")[0]}function t(n,r=2){return n==null||n===""?0:+(Math.round(parseFloat(n+"e"+r))+"e-"+r)}function f(n,r){if(n=Number(n),r=Number(r),!r||r<=0)return"0%";const e=(n-r)/r*100;return t(e,2)+"%"}export{u as f,f as p,t as r};
