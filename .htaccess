@@ -1,14 +1,9 @@
+Require all granted
+
 <IfModule mod_rewrite.c>
   RewriteEngine On
-
-  # Force Apache to load dist/index.html
   RewriteRule ^$ dist/index.html [L]
-
-  # Vue Router history mode
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteRule ^ dist/index.html [L]
 </IfModule>
-
-# Allow access
-Options -Indexes
