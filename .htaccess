@@ -1,6 +1,14 @@
-RewriteEngine On
+<IfModule mod_rewrite.c>
+  RewriteEngine On
 
-    # Redirect Vue.js requests to index.html (for history mode)
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule . /index.html [L]
+  # Force Apache to load dist/index.html
+  RewriteRule ^$ dist/index.html [L]
+
+  # Vue Router history mode
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ dist/index.html [L]
+</IfModule>
+
+# Allow access
+Options -Indexes
