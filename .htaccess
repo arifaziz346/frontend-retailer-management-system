@@ -1,0 +1,6 @@
+RewriteEngine On
+
+    # Redirect Vue.js requests to index.html (for history mode)
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule . /dist/index.html [L]
