@@ -1,0 +1,23 @@
+@import 'tailwindcss';
+
+/* Force Tailwind v4 to output RGB, not OKLCH */
+/* :root {
+  --tw-srgb: 1;
+  color-scheme: light;
+} */
+
+/* Prevent horizontal scrolling on all devices */
+html, body {
+  overflow-x: hidden;
+}
+
+/* Improve mobile rendering and font smoothing */
+body {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  background-color: #f9fafb; /* Tailwind gray-50 (RGB fallback now) */
+  color: #111827; /* Tailwind gray-900 (RGB fallback now) */
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
