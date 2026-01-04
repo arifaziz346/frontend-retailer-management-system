@@ -139,10 +139,10 @@
       class="w-32 h-32 opacity-70 mb-4"
     />
     <h2 class="text-xl font-semibold text-gray-700 mb-2">
-      No Category Found
+      No Admin Found
     </h2>
     <p class="text-gray-500">
-      Try adding new products to see them listed here.
+      Try adding new admins to see them listed here.
     </p>
   </div>
 

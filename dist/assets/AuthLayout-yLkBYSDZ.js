@@ -1,1 +1,0 @@
-import{c as e,a as s,b as t,u as a,R as c,o}from"./index-gUTQSAyF.js";const r={class:"min-h-screen w-full flex items-center justify-center bg-gray-100"},n={class:"max-w-md w-full"},m={__name:"AuthLayout",setup(u){return(_,l)=>(o(),e("div",r,[s("div",n,[t(a(c))])]))}};export{m as default};
