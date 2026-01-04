@@ -6,47 +6,92 @@ import { useAuthStore } from '../stores/auth'
 const router = createRouter({
   history: createWebHistory(),
   routes: [
+    // ✅ ROOT FIX (IMPORTANT)
+    {
+      path: '/',
+      redirect: '/admin/login'
+    },
+
+    // MODULE ROUTES
     ...adminRoutes,
     // ...userRoutes,
+
+    // ✅ 404 FALLBACK (IMPORTANT)
+    {
+      path: '/:pathMatch(.*)*',
+      redirect: '/admin/login'
+    }
   ],
 })
 
-// ✅ Navigation Guard
+/* =========================
+   GLOBAL NAVIGATION GUARD
+========================= */
 router.beforeEach(async (to, from, next) => {
   const auth = useAuthStore()
 
-  // 🔹 Wait for auth store to initialize (restore from localStorage)
+  // Restore auth state
   if (!auth.isReady) {
     await auth.initializeAuth()
   }
 
-  const isLoggedIn = !!auth.token
+  const isLoggedIn = Boolean(auth.token)
   const userRole = auth.user?.role
 
-  console.log('Route Check:', to.path, 'User Role:', userRole, 'LoggedIn:', isLoggedIn)
+  console.log('Route Check:', {
+    to: to.path,
+    isLoggedIn,
+    userRole
+  })
 
-  // --- ADMIN ROUTE PROTECTION ---
-  if (to.path.startsWith('/admin') && to.path !== '/admin/login') {
-  if (!isLoggedIn) return next('/admin/login')
-  if (userRole !== 'admin') return next('/user/index')
-}
-
-
-  // --- USER ROUTE PROTECTION ---
-  if (to.path.startsWith('/user')) {
-    if (!isLoggedIn) {
-      if (to.path !== '/user/login') return next('/user/login')
-    } else if (userRole !== 'customer') {
-      return next('/admin/dashboard')
+  /* =========================
+     ADMIN ROUTES
+  ========================= */
+  if (to.path.startsWith('/admin')) {
+    // Allow admin login
+    if (to.path === '/admin/login') {
+      if (isLoggedIn && userRole === 'admin') {
+        return next('/admin/dashboard')
+      }
+      return next()
     }
+
+    // Not logged in → admin login
+    if (!isLoggedIn) {
+      return next('/admin/login')
+    }
+
+    // Logged in but not admin
+    if (userRole !== 'admin') {
+      return next('/user/index')
+    }
+
+    return next()
   }
 
-  // --- Redirect if already logged in ---
-  if (['/login', '/admin/login', '/user/login'].includes(to.path)) {
-    if (isLoggedIn) {
-      if (userRole === 'admin') return next('/admin/dashboard')
-      if (userRole === 'customer') return next('/user/index')
+  /* =========================
+     USER ROUTES
+  ========================= */
+  if (to.path.startsWith('/user')) {
+    // Allow user login
+    if (to.path === '/user/login') {
+      if (isLoggedIn && userRole === 'customer') {
+        return next('/user/index')
+      }
+      return next()
     }
+
+    // Not logged in → user login
+    if (!isLoggedIn) {
+      return next('/user/login')
+    }
+
+    // Logged in but wrong role
+    if (userRole !== 'customer') {
+      return next('/admin/dashboard')
+    }
+
+    return next()
   }
 
   next()
