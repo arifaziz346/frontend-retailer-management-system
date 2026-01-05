@@ -1,5 +1,7 @@
 <template>
-  <div class="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 space-y-6 border border-gray-100">
+  <div
+    class="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 space-y-6 border border-gray-100"
+  >
     <!-- Header -->
     <div class="text-center">
       <h1 class="text-3xl font-bold text-gray-800">Chitral Steel 👋</h1>
@@ -9,44 +11,55 @@
       </p>
     </div>
 
-    <!-- Login form -->
+    <!-- Login Form -->
     <form @submit.prevent="handleLogin" class="space-y-5">
+      <!-- Email -->
       <div>
-        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          Email Address
+        </label>
         <input
-          id="email"
           type="email"
-          v-model="form.email"
+          v-model.trim="form.email"
           placeholder="admin@example.com"
-          class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          autocomplete="email"
+          class="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-indigo-500"
         />
-        <p v-if="errors.email" class="text-red-500 text-sm mt-1">{{ errors.email }}</p>
+        <p v-if="errors.email" class="text-red-500 text-sm mt-1">
+          {{ errors.email[0] }}
+        </p>
       </div>
 
+      <!-- Password -->
       <div>
-        <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          Password
+        </label>
         <input
-          id="password"
           type="password"
-          v-model="form.password"
+          v-model.trim="form.password"
           placeholder="••••••••"
-          class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          autocomplete="current-password"
+          class="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-indigo-500"
         />
-        <p v-if="errors.password" class="text-red-500 text-sm mt-1">{{ errors.password }}</p>
+        <p v-if="errors.password" class="text-red-500 text-sm mt-1">
+          {{ errors.password[0] }}
+        </p>
       </div>
 
+      <!-- Button -->
       <button
         type="submit"
-        class="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition flex justify-center items-center"
         :disabled="loading"
+        class="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition flex justify-center items-center disabled:opacity-60"
       >
-        <template v-if="loading">
-          <VueSpinnerDots size="20px" color="#fff" />
-          <span class="ml-2">Logging in...</span>
-        </template>
-        <template v-else>
-          Login
-        </template>
+        <VueSpinnerDots
+          v-if="loading"
+          size="20px"
+          color="#fff"
+          class="mr-2"
+        />
+        <span>{{ loading ? 'Logging in...' : 'Login' }}</span>
       </button>
     </form>
   </div>
@@ -54,59 +67,62 @@
 
 <script setup>
 import { ref } from 'vue'
-import axios from 'axios'
 import { useRouter } from 'vue-router'
 import { VueSpinnerDots } from 'vue3-spinners'
-import { useAuthStore } from '@/stores/auth'
 import api from '@/plugins/axios'
+import { useAuthStore } from '@/stores/auth'
+
 const router = useRouter()
 const auth = useAuthStore()
 
+const loading = ref(false)
+const errors = ref({})
+
 const form = ref({
   email: '',
-  password: ''
+  password: '',
 })
 
-const errors = ref({})
-const loading = ref(false)
-
 const handleLogin = async () => {
-  errors.value = {}
   loading.value = true
+  errors.value = {}
 
   try {
-    console.log('🔹 Starting login...')
-    // ✅ Ensure you include your endpoint URL
-    const response = await api.post('/admin/login', {
+    console.log('🔹 Login request started')
+
+    // ❌ No Authorization header here (handled by interceptor rule)
+    const { data } = await api.post('/admin/login', {
       email: form.value.email,
-      password: form.value.password
+      password: form.value.password,
     })
 
-    console.log('✅ Login response:', response.data)
+    console.log('✅ Login success:', data)
 
-    if (response.data.status) {
-      const { access_token, user } = response.data
-      auth.setAuth(user, access_token)
+    // 🔐 Store JWT + user
+    auth.setAuth(data.user, data.access_token)
 
-      // ✅ Redirect based on role
-      if (user.role === 'admin') {
-        await router.push('/admin/sale')
-      } else {
-        await router.push('/user/index')
-      }
-    }
-  } catch (error) {
-    console.error('❌ Login error:', error)
-    if (error.response?.data?.errors) {
-      errors.value = error.response.data.errors
-    } else if (error.response?.data?.message) {
-      errors.value = { email: [error.response.data.message] }
+    // 🚀 Redirect
+    if (data.user.role === 'admin') {
+      router.replace('/admin/sale')
     } else {
-      errors.value = { email: ['Something went wrong. Please try again.'] }
+      router.replace('/user/index')
+    }
+  } catch (err) {
+    console.error('❌ Login failed', err)
+
+    if (err.response?.status === 401) {
+      errors.value = {
+        email: ['Invalid email or password'],
+      }
+    } else if (err.response?.data?.errors) {
+      errors.value = err.response.data.errors
+    } else {
+      errors.value = {
+        email: ['Server error. Please try again later.'],
+      }
     }
   } finally {
     loading.value = false
   }
 }
-
 </script>

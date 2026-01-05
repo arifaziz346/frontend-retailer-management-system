@@ -1,232 +1,181 @@
 <template>
-  <!-- 🔵 Loader -->
-  <div
-    v-if="isLoading"
-    class="fixed inset-0 flex items-center justify-center bg-white/70 backdrop-blur-sm z-50"
-  >
-    <div class="flex flex-col items-center space-y-3">
-      <VueSpinnerDots size="48px" color="#2563eb" />
-      <p class="text-blue-600 text-sm font-medium animate-pulse">
-        Loading, please wait...
-      </p>
+  <div v-if="isLoading" class="fixed inset-0 flex items-center justify-center bg-slate-900/10 backdrop-blur-md z-50">
+    <div class="bg-white p-6 rounded-2xl shadow-xl flex flex-col items-center">
+      <VueSpinnerDots size="40px" color="#2563eb" />
+      <span class="text-xs font-bold text-blue-600 mt-4 tracking-widest uppercase">Loading Accounts</span>
     </div>
   </div>
-  <div v-else class="bg-white p-4 rounded shadow m-1 shadow-1xl h-auto">
-     
-    <!-- <div class="flex flex-row md:flex-row justify-between items-center bg-white">
-      <div class="relative flex items-center mb-4 md:mb-0"> -->
-        <!-- <p class="font-bold text-white text-xs md:text-xl rounded-sm bg-gray-800 p-1 border">Name: {{state.employee_name}}</p> -->
-      <!-- </div>
-      <div class="relative flex items-center mb-4 md:mb-0">
-        <p class="font-bold underline text-xs md:text-xl">Accounts</p>
-      </div>
-      <div class="flex flex-row gap-1">
-        <button @click="openModal('Create Account', 'create',null)" type="button"
-            class="text-blue-800 hover:text-white border border-blue-500 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-1 md:py-1.5 py-0.5 text-center me-2 mb-2 dark:border-blue-500 dark:text-blue-500 dark:hover:text-white dark:hover:bg-blue-500 dark:focus:ring-blue-800">Account+</button>
-      </div>
-    </div> -->
-    <!-- Header -->
-    <header
-  class="flex flex-col sm:flex-row sm:items-center sm:justify-between
-         bg-white border-b border-gray-200 px-4 py-3 shadow-sm rounded-lg"
->
-  <!-- Left: Back + Breadcrumb -->
-  <div class="flex items-center gap-3">
-    <!-- Back Arrow -->
-    <button
-  @click="$router.back()"
-  class="flex items-center justify-center w-9 h-9 rounded-full
-         hover:bg-gray-100 transition"
->
-  <i class="pi pi-arrow-left text-lg text-gray-700 hover:text-blue-600 hover:cursor-pointer"></i>
-</button>
 
+  <div v-else class="min-h-screen bg-slate-50 p-4 md:p-6 lg:p-8">
+    
+    <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+      <div class="flex items-center gap-4">
+        <button
+          @click="$router.back()"
+          class="flex items-center justify-center w-10 h-10 rounded-xl bg-white shadow-sm border border-slate-200 hover:bg-slate-50 transition active:scale-95"
+        >
+          <i class="pi pi-arrow-left text-slate-600"></i>
+        </button>
+        <div>
+          <nav class="flex items-center text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+            <router-link to="/admin" class="hover:text-blue-600 transition">Admin</router-link>
+            <i class="pi pi-chevron-right text-[10px] mx-2"></i>
+            <span class="text-slate-600">Accounts</span>
+          </nav>
+          <h1 class="text-2xl font-black text-slate-800 tracking-tight">Account Management</h1>
+        </div>
+      </div>
 
-    <!-- Breadcrumb -->
-    <nav class="flex items-center space-x-2 text-sm md:text-base text-gray-600">
-      <router-link
-        to="/admin/accounts"
-        class="flex items-center hover:text-blue-600 transition-colors"
+      <button
+        @click="() => { resetForm(); isEditAccount = false; openModal() }"
+        class="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-6 py-2.5 rounded-xl shadow-lg shadow-blue-200 transition-all font-bold text-sm"
       >
-        <i class="pi pi-home mr-1 text-2xl"></i>
-        <span class="hidden sm:inline">Account</span>
-      </router-link>
-    </nav>
-  </div>
+        <i class="pi pi-plus-circle text-lg"></i>
+        <span>Add New Account</span>
+      </button>
+    </header>
 
-  <!-- Right: Add Button -->
-  <Button
-    variant="primary"
-    size="sm"
-    class="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700
-           text-white px-3 py-2 rounded-lg shadow-sm transition-all duration-150 mt-3 sm:mt-0"
-    @click="() => { resetForm(); isEditAccount = false; openModal() }"
-  >
-    <i class="pi pi-plus text-sm"></i>
-    <span>Account</span>
-  </Button>
-</header>
+    <div v-if="state.accounts?.length" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-slate-400 text-[11px] font-bold uppercase tracking-widest">Total Accounts</span>
+          <i class="pi pi-wallet text-blue-500"></i>
+        </div>
+        <p class="text-2xl font-black text-slate-800">{{ state.accounts.length }}</p>
+      </div>
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-slate-400 text-[11px] font-bold uppercase tracking-widest">Active Status</span>
+          <i class="pi pi-check-circle text-green-500"></i>
+        </div>
+        <p class="text-2xl font-black text-slate-800">Operational</p>
+      </div>
+    </div>
 
+    <div v-if="state.accounts && state.accounts.length" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50/50 border-b border-slate-200">
+              <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Created Date</th>
+              <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Account Name</th>
+              <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Account Number</th>
+              <th class="px-6 py-4 text-center text-[11px] font-bold text-slate-500 uppercase tracking-widest">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr
+              v-for="account in state.accounts"
+              :key="account.id"
+              class="hover:bg-blue-50/30 transition-colors group"
+            >
+              <td class="px-6 py-4 text-sm text-slate-500 font-medium">
+                {{ formatDate(account.created_at) || '-' }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-xs group-hover:bg-blue-100 group-hover:text-blue-600 transition">
+                    {{ account.account_name?.charAt(0) }}
+                  </div>
+                  <span class="text-sm font-bold text-slate-700">{{ account.account_name || '-' }}</span>
+                </div>
+              </td>
+              <td class="px-6 py-4">
+                <span class="px-3 py-1 rounded-lg bg-slate-100 text-slate-600 font-mono text-sm border border-slate-200">
+                  {{ account.account_number || '-' }}
+                </span>
+              </td>
+              <td class="px-6 py-4">
+                <div class="flex justify-center items-center gap-2">
+                  <button
+                    @click="editAccount(account)"
+                    class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                    title="Edit Account"
+                  >
+                    <i class="pi pi-pencil text-sm"></i>
+                  </button>
+                  <button
+                    @click="deleteAccount(account.id)"
+                    class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                    title="Delete Account"
+                  >
+                    <i class="pi pi-trash text-sm"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-    <div v-if="state.accounts && state.accounts.length" class="w-full overflow-x-scroll border border-gray-300 rounded-md shadow-sm">
-            <div class="w-full bg bg-gray-800 text-white p-1.5">
-                <i class="pi pi-home mr-1 text-md"> Account List</i></div>
-          <table class="min-w-full border border-gray-200 bg-white rounded-xl overflow-hidden shadow-sm text-xs sm:text-sm md:text-base">
-            <thead class="bg-gray-100 text-gray-700 text-xs">
-              <tr>
-                <!-- <th class="px-4 py-2 text-left font-semibold">#</th> -->
-                <th class="px-4 py-2 text-left font-semibold">Created-Date</th>
-                
-                <th class="px-4 py-2 text-left font-semibold">Account-Name</th>
-                <th class="px-4 py-2 text-left font-semibold">Account-Number</th>
-                <!-- <th class="px-4 py-2 text-left font-semibold">Balance</th> -->
-                
-                <th class="px-4 py-2 text-center font-semibold">Action</th>
-              </tr>
-            </thead>
+      <div class="bg-slate-50/50 border-t border-slate-200 px-6 py-4 flex justify-between items-center">
+        <span class="text-xs text-slate-500 font-medium">Showing {{ state.accounts.length }} items</span>
+        <Pagination
+          :pagination="state.pagination"
+          @page-change="fetchAccounts"
+        />
+      </div>
+    </div>
 
-            <tbody>
-              <tr
-                v-for="(account, index) in state.accounts"
-                :key="account.id"
-                class="border-t border-t-gray-300 hover:bg-gray-50 transition ext-sm text-xs"
-              >
-                <!-- <td class="px-4 py-2 font-medium text-gray-800">{{ index + 1 + (state.pagination.currentPage - 1) * perPage }}</td> -->
-                <td class="px-4 py-2 text-gray-700">{{formatDate(account.created_at) || '-' }}</td>
+    <div v-else class="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border-2 border-dashed border-slate-200">
+      <div class="bg-slate-50 p-6 rounded-full mb-6">
+        <img src="https://cdn-icons-png.flaticon.com/512/4076/4076549.png" alt="No Data" class="w-24 h-24 grayscale opacity-40" />
+      </div>
+      <h2 class="text-2xl font-bold text-slate-800 mb-2">No Accounts Linked</h2>
+      <p class="text-slate-500 text-center max-w-xs mb-8">Establish your financial workspace by adding your first bank or cash account.</p>
+      <button @click="openModal" class="text-blue-600 font-bold hover:underline flex items-center gap-2">
+        <i class="pi pi-plus"></i> Add Account Now
+      </button>
+    </div>
 
-                
-
-                <td class="px-4 py-2 text-gray-700">{{ account.account_name || '-' }}</td>
-                <td class="px-4 py-2 font-medium text-gray-900">{{ account.account_number || '-' }}</td>
-                <!-- <td class="px-4 py-2 text-gray-700">Rs.{{ account.balance || '0' }}</td> -->
-
-                
-
-                
-
-                <td class="px-4 py-2 flex flex-col sm:flex-row justify-center gap-2">
-
-  <!-- VIEW -->
-  <!-- <button
-    @click="viewAccountDetail(account)"
-    class="flex flex-col sm:flex-row items-center gap-1 p-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md shadow text-xs"
-  >
-    <i class="pi pi-eye text-base"></i>
-    <span>View</span>
-  </button> -->
-
-  <!-- EDIT -->
-  <button
-    @click="editAccount(account)"
-    class="flex flex-col sm:flex-row items-center gap-1 p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow text-xs"
-  >
-    <i class="pi pi-pencil text-base"></i>
-    <span>Edit</span>
-  </button>
-
-  <!-- DELETE -->
-  <button
-    @click="deleteAccount(account.id)"
-    class="flex flex-col sm:flex-row items-center gap-1 p-2 bg-red-500 hover:bg-red-600 text-white rounded-md shadow text-xs"
-  >
-    <i class="pi pi-trash text-base"></i>
-    <span>Delete</span>
-  </button>
-
-</td>
-
-
-              </tr>
-            </tbody>
-          </table>
-
-          <!-- Pagination -->
-          <Pagination
-            :pagination="state.pagination"
-            @page-change="fetchSuppliers"
-          />
+    <BaseModal
+      v-model="showModal"
+      :title="isEditAccount ? 'Update Account' : 'Register New Account'"
+      @save="() => (createAccount(), isEditAccount = false)"
+      :disableSaveBtn="isLoading"
+    >
+      <div class="space-y-6 pt-2 pb-4">
+        <div>
+          <label for="account_name" class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">
+            Official Account Name
+          </label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+              <i class="pi pi-user text-sm"></i>
+            </span>
+            <input
+              type="text"
+              v-model="form.account_name"
+              id="account_name"
+              placeholder="e.g. HBL Corporate"
+              class="block w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none"
+            />
+          </div>
+          <p v-if="account_nameError" class="mt-2 text-[11px] font-bold text-red-500 flex items-center gap-1">
+            <i class="pi pi-exclamation-circle"></i> Account name is required
+          </p>
         </div>
 
-    <!-- No Data -->
-  <div
-    v-else
-    class="flex flex-col items-center justify-center h-[60vh] text-center"
-  >
-    <img
-      src="https://cdn-icons-png.flaticon.com/512/4076/4076549.png"
-      alt="No Data"
-      class="w-32 h-32 opacity-70 mb-4"
-    />
-    <h2 class="text-xl font-semibold text-gray-700 mb-2">No Accounts Found</h2>
-    <p class="text-gray-500">
-      Try adding new account to see them listed here.
-    </p>
+        <div>
+          <label for="account_number" class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">
+            Account / IBAN Number
+          </label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+              <i class="pi pi-credit-card text-sm"></i>
+            </span>
+            <input
+              type="text"
+              v-model="form.account_number"
+              id="account_number"
+              placeholder="0000 0000 0000 0000"
+              class="block w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none"
+            />
+          </div>
+        </div>
+      </div>
+    </BaseModal>
   </div>
-
-  
-  <!-- Modal -->
-   <BaseModal
-  v-model="showModal"
-  title="Create Account"
-  @save="() => (createAccount(), isEditAccount = false)"
-  :disableSaveBtn="isLoading"
-   >
-
-  <!-- FORM WRAPPER -->
-  <div class="w-full max-w-full overflow-x-hidden">
-
-    <!-- Account Name -->
-    <div class="mb-4">
-      <label
-        for="account_name"
-        class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-      >
-        Account Name
-      </label>
-
-      <input
-        type="text"
-        v-model="form.account_name"
-        id="account_name"
-        class="block w-full max-w-full bg-gray-50 border border-gray-300
-               text-gray-900 text-sm rounded-lg
-               focus:ring-blue-500 focus:border-blue-500
-               p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-      />
-
-      <p v-if="account_nameError" class="mt-1 text-sm text-red-600">
-        Account name is required
-      </p>
-    </div>
-
-    <!-- Account Number -->
-    <div class="mb-4">
-      <label
-        for="account_number"
-        class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-      >
-        Account Number
-      </label>
-
-      <input
-        type="text"
-        v-model="form.account_number"
-        id="account_number"
-        class="block w-full max-w-full bg-gray-50 border border-gray-300
-               text-gray-900 text-sm rounded-lg
-               focus:ring-blue-500 focus:border-blue-500
-               p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-      />
-    </div>
-
-  </div>
-
-</BaseModal>
-
-
-
-    </div>
-    
 </template>
 
 <script setup>
@@ -238,6 +187,7 @@ import { VueSpinnerDots } from "vue3-spinners";
 import { toast } from '@/utils/toast';
 import BaseModal from '@/components/BaseModal.vue'; 
 import api from '@/plugins/axios';
+import Pagination from '@/components/admin/Pagination.vue';
 const route = useRoute();
 
 const showModal = ref(false);
@@ -383,14 +333,20 @@ const viewAccountDetail = (id)=>{
   router.push({ name: 'account-detail', params:{ id: id } });  // Programmatic navigation
 }
 
-const fetchAccounts = async (id) => {
+const fetchAccounts = async (url=`/accounts`) => {
 try {
   isLoading.value = true;
-  const response = await api.get(`/accounts`);
+  const response = await api.get(url);
   const data = response.data.data.data;
   // console.log('account-',data);
   state.accounts = data;
   // state.employee_name = data.employee.name;
+  const paginated = response.data.data;
+  state.pagination.currentPage = paginated.current_page ?? 1;
+  state.pagination.lastPage = paginated.last_page ?? 1;
+  state.pagination.nextPageUrl = paginated.next_page_url ?? null;
+  state.pagination.prevPageUrl = paginated.prev_page_url ?? null;
+  
 } catch (error) {
   console.log('error fetching accounts', error);
 }

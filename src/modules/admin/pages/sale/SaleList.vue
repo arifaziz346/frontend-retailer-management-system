@@ -260,22 +260,23 @@ const handleFormErrors = useFormErrors(errors);
 watch(searchQuery, () => {
   isSearching.value = true;
   search.value = searchQuery.value;
-  fetchSales(1);
+  fetchSales();
 });
 
 
 
 /* ---------------- FETCH SALES ---------------- */
-const fetchSales = async (page = 1) => {
+const fetchSales = async (url=`/sales`) => {
   isLoading.value = isSearching.value ? false : true;
 
   try {
-    const res = await api.get("/sales", {
+    const res = await api.get(url, {
       params: {
-        page,
         search: search.value || null,
       },
     });
+
+    console.log('res->>>',res.data);
 
     // ✅ NO .value with reactive
     state.sales = res.data.data.data;

@@ -22,14 +22,14 @@
           <p class="text-gray-500 text-sm mt-1">Detailed breakdown of sold items and revenue metrics.</p>
         </div>
         
-        <div class="flex gap-2">
+        <!-- <div class="flex gap-2">
           <button class="flex-1 md:flex-none flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-bold hover:bg-gray-50 transition shadow-sm">
             <i class="pi pi-file-excel text-green-600"></i> Excel
           </button>
           <button class="flex-1 md:flex-none flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-bold hover:bg-gray-50 transition shadow-sm">
             <i class="pi pi-file-pdf text-red-600"></i> PDF
           </button>
-        </div>
+        </div> -->
       </div>
     </div>
 
@@ -58,10 +58,10 @@
 
         <div class="w-full lg:w-auto flex gap-3">
           <div class="relative flex-1 lg:flex-none">
-            <button @click="showCategory = !showCategory" 
+            <!-- <button @click="showCategory = !showCategory" 
               class="w-full flex items-center justify-center gap-2 px-6 py-2.5 bg-gray-100 text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-200 transition">
               <i class="pi pi-filter"></i> Categories
-            </button>
+            </button> -->
             
             <div v-if="showCategory" class="absolute right-0 mt-3 bg-white shadow-2xl rounded-2xl w-64 p-4 z-30 border border-gray-100">
               <div class="max-h-60 overflow-y-auto custom-scrollbar pr-2">

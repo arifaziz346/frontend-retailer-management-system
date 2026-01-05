@@ -28,7 +28,7 @@
     </div>
     <div class="min-w-0">
       <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest truncate">Total Withdrawals</p>
-      <h3 class="text-xl xl:text-2xl font-black text-rose-600 truncate">
+      <h3 class="text-xl xl:text-2xl font-black text-blue-600 truncate">
         Rs. {{ totalWithdraw.toLocaleString() }}
       </h3>
     </div>
@@ -40,7 +40,7 @@
     </div>
     <div class="min-w-0">
       <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest truncate">Total Failed</p>
-      <h3 class="text-xl xl:text-2xl font-black text-gray-800 truncate">
+      <h3 class="text-xl xl:text-2xl font-black text-rose-600 truncate">
         Rs. {{ totalFailed.toLocaleString() }}
       </h3>
     </div>
@@ -106,8 +106,8 @@
   <td class="px-6 py-4 text-center">
     <span :class="{
         'bg-emerald-50 text-emerald-600 border-emerald-100': transaction.transaction_type === 'Deposit',
-        'bg-rose-50 text-rose-600 border-rose-100': transaction.transaction_type === 'Withdraw',
-        'bg-black text-white border-black': transaction.transaction_type === 'Failed'
+        'bg-blue-50 text-blue-600 border-blue-100': transaction.transaction_type === 'Withdraw',
+        'bg-rose-50 text-rose-600 border-rose-100': transaction.transaction_type === 'Failed'
       }"
       class="px-3 py-1 rounded-full text-[10px] font-black uppercase border tracking-tighter">
       {{ transaction.transaction_type }}
@@ -117,8 +117,8 @@
   <td class="px-6 py-4">
     <span :class="{
         'text-emerald-600': transaction.transaction_type === 'Deposit',
-        'text-rose-600': transaction.transaction_type === 'Withdraw',
-        'text-black': transaction.transaction_type === 'Failed'
+        'text-blue-600': transaction.transaction_type === 'Withdraw',
+        'text-rose-600': transaction.transaction_type === 'Failed'
       }" class="font-black">
       
       <template v-if="transaction.transaction_type === 'Deposit'">+</template>

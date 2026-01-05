@@ -74,7 +74,17 @@
                 <td class="px-4 py-2 text-gray-700">{{formatDate(transaction.transaction_date) || '-' }}</td>
                 <td class="px-4 py-2 text-gray-700">{{ transaction.account_name || '-' }}</td>
                 <td class="px-4 py-2 font-medium text-gray-900">Rs.{{ transaction.amount || '-' }}</td>
-                <td :class="`px-4 py-2 ${transaction.transaction_type === 'Deposit' ? 'text-green-700 font-bold' : 'text-red-700 font-bold'}`">{{ transaction.transaction_type || '0' }}</td>
+               <td
+  :class="[
+    'px-4 py-2 font-semibold',
+    transaction.transaction_type === 'Deposit' && 'text-green-700',
+    transaction.transaction_type === 'Withdraw' && 'text-blue-700',
+    transaction.transaction_type === 'Failed' && 'text-red-700'
+  ]"
+>
+  {{ transaction.transaction_type || 'N/A' }}
+</td>
+
                 <td class="px-4 py-2 text-gray-700 text-center">{{ transaction.description || '-' }}</td>
                 
 

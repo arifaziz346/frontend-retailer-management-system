@@ -44,7 +44,7 @@ const columns = [
   { label: 'Profit', key: 'profit' },
   { label: 'Credit Customer', key: 'credit_customer' },
   { label: 'Expense', key: 'expense' },
-  { label: 'Credit Supplier', key: 'credit_supplier' },
+  // { label: 'Credit Supplier', key: 'credit_supplier' },
   { label: 'Account (Withdraw)', key: 'account_withdraw' },
   { label: 'Account (Deposit)', key: 'account_deposit' },
   { label: 'Cash in Hand', key: 'cash_in_hand' },

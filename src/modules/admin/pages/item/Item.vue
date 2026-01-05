@@ -1,221 +1,176 @@
 <template>
-  <!-- 🔵 Loader -->
-  <div
-    v-if="isLoading"
-    class="fixed inset-0 flex items-center justify-center bg-white/70 backdrop-blur-sm z-50"
-  >
-    <div class="flex flex-col items-center space-y-3">
-      <VueSpinnerDots size="48px" color="#2563eb" />
-      <p class="text-blue-600 text-sm font-medium animate-pulse">
-        Loading, please wait...
-      </p>
+  <div v-if="isLoading" class="fixed inset-0 flex items-center justify-center bg-slate-900/10 backdrop-blur-md z-[100]">
+    <div class="flex flex-col items-center p-8 bg-white rounded-3xl shadow-2xl border border-white">
+      <VueSpinnerDots size="50px" color="#2563eb" />
+      <p class="text-slate-500 text-xs font-bold mt-4 tracking-[0.2em] uppercase">Processing Data</p>
     </div>
   </div>
 
-  <div v-else class="flex flex-col min-h-screen bg-gray-50 overflow-x-hidden">
+  <div v-else class="flex flex-col min-h-screen bg-[#f8fafc] w-full">
 
-    <!-- Header -->
-    <header
-      class="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-white border-b border-gray-200 px-4 py-3 shadow-sm rounded-lg"
-    >
-      <!-- Breadcrumb -->
-      <nav class="flex items-center space-x-2 text-sm md:text-base text-gray-600">
-        <router-link
-          to="/admin/Item"
-          class="flex items-center hover:text-blue-600 transition-colors"
+    <header class="sticky top-0 z-30 w-full bg-white border-b border-slate-200 shadow-sm">
+      <div class="w-full px-4 sm:px-8 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex flex-col">
+          <nav class="flex items-center space-x-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+            <router-link to="/admin/Item" class="hover:text-blue-600 transition-colors">Inventory</router-link>
+            <i class="pi pi-chevron-right text-[10px]"></i>
+            <span class="text-blue-600">{{ category_name || 'All Categories' }}</span>
+          </nav>
+          <h1 class="text-2xl font-black text-slate-800 tracking-tight">Product Management</h1>
+        </div>
+
+        <button
+          class="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-blue-200 transition-all text-sm"
+          @click="() => { resetForm(); editItem = false; showModal = true; addVariant(); }"
         >
-          <i class="pi pi-home mr-1 text-2xl"></i>
-          <span class="hidden sm:inline">Items</span>
-        </router-link>
-        <span class="font-semibold text-gray-900">{{ category_name }}</span>
-      </nav>
-
-      <!-- Add Button -->
-      <Button
-        variant="primary"
-        size="sm"
-        class="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg shadow-sm transition-all duration-150 mt-3 sm:mt-0"
-        @click="() => { resetForm(); editItem = false; showModal = true; addVariant(); }"
-      >
-        <i class="pi pi-plus text-sm"></i>
-        <span>Items</span>
-      </Button>
+          <i class="pi pi-plus-circle"></i>
+          <span>Create New Item</span>
+        </button>
+      </div>
     </header>
 
-    <main class="flex-1 p-4 sm:p-6 md:p-8">
+    <main class="w-full px-4 sm:px-8 py-6">
+      
+      <div class="w-full mb-8">
+        <FilterBar
+          :subCategories="state.categories"
+          v-model:search="searchText"
+          v-model:category_id="category_id"
+          :showButton="false"
+          class="w-full"
+        />
+      </div>
 
-  <div class="flex flex-row justify-between">
+      <div v-if="state.items && state.items.length" class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden w-full">
+        <div class="overflow-x-auto w-full">
+          <table class="w-full text-left border-collapse min-w-[1000px]">
+            <thead>
+              <tr class="bg-slate-50/80 text-slate-500 uppercase text-[11px] font-bold tracking-widest border-b border-slate-100">
+                <th class="px-6 py-5">Product Info</th>
+                <th class="px-6 py-5">Category</th>
+                <th class="px-6 py-5">Pricing (Cost/Sale)</th>
+                <th class="px-6 py-5">Profit Analysis</th>
+                <th class="px-6 py-5 w-[200px]">Inventory Health</th> <th class="px-6 py-5 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50">
+              <tr v-for="item in state.items" :key="item.id" class="hover:bg-blue-50/40 transition-all group">
+                <td class="px-6 py-4">
+                  <div class="flex flex-col">
+                    <span class="font-bold text-slate-800 text-base group-hover:text-blue-700 transition-colors">{{ item.name }}</span>
+                    <span class="text-xs font-mono text-slate-400 mt-1">#{{ item.unique_barcode || item.id }}</span>
+                  </div>
+                </td>
 
-    <FilterBar
-    :subCategories="state.categories"
-     v-model:search="searchText"
-     v-model:category_id="category_id"
-     :showButton="false"/>
+                <td class="px-6 py-4">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                    {{ item.category?.category_name || 'General' }}
+                  </span>
+                </td>
 
+                <td class="px-6 py-4">
+                  <div class="text-sm font-bold text-slate-700">Rs.{{ item.sale_price }}</div>
+                  <div class="text-[11px] text-slate-400 font-medium tracking-tight">Net Cost: Rs.{{ item.cost_price }}</div>
+                </td>
 
+                <td class="px-6 py-4">
+                  <div class="flex items-baseline gap-2">
+                    <span class="text-sm font-black text-green-600 tracking-tighter">+{{ (item.sale_price - item.cost_price).toFixed(0) }}</span>
+                    <span class="text-[10px] font-bold text-green-500/80 bg-green-50 px-1.5 py-0.5 rounded">
+                      {{ profitPercentage(item.sale_price, item.cost_price) }}
+                    </span>
+                  </div>
+                </td>
 
-  </div>
+                <td class="px-6 py-4">
+                  <div class="flex flex-col gap-1.5">
+                    <div class="flex justify-between text-[10px] font-bold uppercase tracking-tighter">
+                      <span :class="item.quantity_in_stock < 10 ? 'text-red-500' : 'text-slate-500'">
+                        {{ item.quantity_in_stock || 0 }} {{ item.unit || 'pcs' }}
+                      </span>
+                      <span class="text-slate-400">Target: 100</span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200/50">
+                      <div 
+                        class="h-full rounded-full transition-all duration-1000"
+                        :class="[
+                           item.quantity_in_stock > 20 ? 'bg-blue-500' : 
+                           item.quantity_in_stock > 5 ? 'bg-amber-400' : 'bg-red-500'
+                        ]"
+                        :style="{ width: Math.min((item.quantity_in_stock / 100) * 100, 100) + '%' }"
+                      ></div>
+                    </div>
+                  </div>
+                </td>
 
-            <!--Searching---->
-            <div v-if="isLoadingSearch" class="flex items-center justify-center p-4">
-              <VueSpinnerDots size="32px" color="#2563eb" />
-              <span class="ml-2 text-blue-600 font-medium animate-pulse">Searching...</span>
-            </div>
+                <td class="px-6 py-4 text-right">
+                  <div class="flex justify-end items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button @click="edit(item)" class="p-2 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors">
+                      <i class="pi pi-pencil text-sm"></i>
+                    </button>
+                    <button @click="onDelete(item.id)" class="p-2 hover:bg-red-100 text-red-500 rounded-lg transition-colors">
+                      <i class="pi pi-trash text-sm"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-            <div v-else>
+        <div class="bg-slate-50/50 px-8 py-4 border-t border-slate-100">
+          <Pagination :pagination="state.pagination" @page-change="fetchItems" />
+        </div>
+      </div>
 
+      <div v-else class="w-full py-32 flex flex-col items-center justify-center bg-white border-2 border-dashed border-slate-200 rounded-[2rem]">
+        <div class="p-6 bg-slate-50 rounded-full mb-4">
+          <i class="pi pi-box text-5xl text-slate-300"></i>
+        </div>
+        <h3 class="text-xl font-bold text-slate-800">Your inventory is empty</h3>
+        <p class="text-slate-500 mb-6">Start tracking your products by clicking the button below.</p>
+        <button @click="showModal = true" class="text-blue-600 font-bold hover:text-blue-700">+ Add First Product</button>
+      </div>
+    </main>
 
-
-  <div v-if="state.items && state.items.length" class="w-full overflow-x-auto border border-gray-300 rounded-md shadow-sm mt-1">
-    <div class="w-full  bg-gray-800 text-white p-1.5">
-                <i class="pi pi-home mr-1 text-md"> Item List</i></div>
-    <table class="min-w-full border border-gray-200 bg-white rounded-xl overflow-hidden shadow-sm text-xs sm:text-sm md:text-base">
-      <!-- Table Head -->
-      <thead class="bg-gray-100 text-gray-700  text-sm ">
-        <tr>
-          <th class="px-4 py-2 text-left font-semibold">#ID</th>
-          <th class="px-4 py-2 text-left font-semibold">Bar-Code</th>
-          <th class="px-4 py-2 text-left font-semibold">Item-Name</th>
-          <th class="px-4 py-2 text-left font-semibold">Category</th>
-          <th class="px-4 py-2 text-left font-semibold">Cost Price</th>
-          <th class="px-4 py-2 text-left font-semibold">Sale Price</th>
-
-          <th class="px-4 py-2 text-left font-semibold">Profit</th>
-          <th class="px-4 py-2 text-left font-semibold">Profit%</th>
-          <th class="px-4 py-2 text-left font-semibold">Unit</th>
-          <th class="px-4 py-2 text-left font-semibold">In-Stock</th>
-          <th class="px-4 py-2 text-center font-semibold">Actions</th>
-        </tr>
-      </thead>
-
-      <!-- Table Body -->
-      <tbody>
-        <tr
-          v-for="item in state.items"
-          :key="item.id"
-          class="border-t border-t-gray-200 hover:bg-gray-50 transition ext-sm"
-        >
-          <td class="px-4 py-2 font-medium text-gray-800">{{ item.id }}</td>
-          <td class="px-4 py-2 text-gray-700">{{ item.unique_barcode }}</td>
-          <td class="px-4 py-2 font-medium text-gray-900">{{ item.name }}</td>
-          <td class="px-4 py-2 text-gray-700">
-          {{ item.category && item.category.category_name ? item.category.category_name : '-' }}
-          </td>
-
-
-          <td class="px-4 py-2 text-gray-700">Rs.{{ item.cost_price }}</td>
-          <td class="px-4 py-2 text-gray-700">Rs.{{ item.sale_price }}</td>
-          <td class="px-4 py-2 text-gray-700">Rs.{{ round(item.sale_price - item.cost_price) }}</td>
-          <td class="px-4 py-2 text-gray-700">
-            {{profitPercentage(item.sale_price, item.cost_price )}}
-          </td>
-          <td class="px-4 py-2 text-gray-700">{{ item.unit || '-' }}</td>
-          <td class="px-4 py-2 text-gray-700">{{ item.quantity_in_stock || '0' }}</td>
-          <td class="px-4 py-2 flex flex-col sm:flex-row justify-center gap-2">
-            <button
-              @click="edit(item)"
-              class="px-3 py-1.5 text-xs sm:text-sm md:text-base text-white bg-blue-600 hover:bg-blue-700 rounded-md shadow"
-            >
-              Edit
-            </button>
-            <button
-              @click="onDelete(item.id)"
-              class="px-3 py-1.5 text-xs sm:text-sm md:text-base text-white bg-red-500 hover:bg-red-600 rounded-md shadow"
-            >
-              Delete
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
-    <!-- Pagination Component -->
-    <Pagination
-      :pagination="state.pagination"
-      @page-change="fetchItems"
-    />
-  </div>
-
-
-  <!-- No Data -->
-  <div
-    v-else
-    class="flex flex-col items-center justify-center h-[60vh] text-center"
-  >
-    <img
-      src="https://cdn-icons-png.flaticon.com/512/4076/4076549.png"
-      alt="No Data"
-      class="w-32 h-32 opacity-70 mb-4"
-    />
-    <h2 class="text-xl font-semibold text-gray-700 mb-2">No Products Found</h2>
-    <p class="text-gray-500">
-      Try adding new products to see them listed here.
-    </p>
-  </div>
-
-</div>
-
-</main>
-
-
-    <!-- Modal -->
     <BaseModal
       v-model="showModal"
-      :title="editItem ? 'Edit Item' : 'Create Item'"
-      @save="() => (editItem ? onSaveOrUpdate() : onSaveOrUpdate())"
+      :title="editItem ? 'Modify Product Information' : 'Catalog New Item'"
+      @save="() => onSaveOrUpdate()"
       :disableSaveBtn="isLoading"
+      panelClass="max-w-2xl"
     >
-      <div class="bg-white p-4 rounded-lg shadow-2xl space-y-2">
-        <FormInput
-          id="name"
-          label="Name"
-          v-model="form.name"
-          :error="errors.name"
-        />
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-2">
+        <div class="md:col-span-2">
+           <FormInput id="name" label="Item Name" v-model="form.name" placeholder="Enter product name..." :error="errors.name" />
+        </div>
         
         <TypeSelector
           v-model="form.category_id"
           :sub_categories="state.categories || []"
           :error="errors?.category_id"
-          button_name="+ Category"
-          :label="'Select-Category'"
+          button_name="+ New"
+          label="Category"
           @click_sub_category="navigateToSubcategory"
         />
-        <FormInput v-model="form.cost_price" label="Buy Price" :error="errors.cost_price" type="number" />
-        <FormInput v-model="form.sale_price" label="Sale Price" :error="errors.sale_price" type="number" />
-        <!-- <FormInput v-model="form.unit" label="Unit" :error="errors.unit" /> -->
-         <div class="flex items-center gap-2">
-  <!-- Selector wrapper without label taking extra row -->
-  <div class="flex-1">
-    <label for="unit" class="block text-sm font-medium mb-1 text-gray-700">
-      Unit
-    </label>
-    <Selector
-      id="unit"
-      v-model="form.unit"
-      :options="state.units.map(unit => ({ label: unit.name, value: unit.name }))"
-      placeholder="Select Unit"
-      class="w-full"
-      :error="errors.unit"
-    />
-    
-  </div>
 
-  <!-- Button stays on the same row -->
-  <button
-    type="button"
-    @click="goToUnitPage"
-    class="flex items-center justify-center px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm gap-1 mt-6"
-  >
-    <i class="pi pi-plus"></i>
-    Add Unit
-  </button>
-</div>
+        <div class="space-y-2">
+          <label class="block text-sm font-bold text-slate-700">Unit of Measure</label>
+          <div class="flex gap-2">
+            <Selector
+              id="unit"
+              v-model="form.unit"
+              :options="state.units.map(u => ({ label: u.name, value: u.name }))"
+              placeholder="Unit"
+              class="flex-1"
+              :error="errors.unit"
+            />
+            <button @click="goToUnitPage" class="p-2 bg-slate-100 rounded-lg hover:bg-slate-200"><i class="pi pi-plus"></i></button>
+          </div>
+        </div>
 
-
-
-
-        
+        <FormInput v-model="form.cost_price" label="Cost Price (Base)" type="number" />
+        <FormInput v-model="form.sale_price" label="Selling Price" type="number" />
       </div>
     </BaseModal>
   </div>
@@ -284,15 +239,15 @@ const handleFormErrors = useFormErrors(errors);
 
 // Watch filters to fetch items
 // Debounced function to fetch items
-// const fetchItemsDebounced = _.debounce(() => {
-//     isLoadingSearch.value = true;
-//   fetchItems()
-// }, 500) // 500ms debounce
+const fetchItemsDebounced = _.debounce(() => {
+    isLoadingSearch.value = true;
+  fetchItems()
+}, 500) // 500ms debounce
 
-// // Watch searchText and category_id
-// watch([searchText, category_id], () => {
-//   fetchItemsDebounced()
-// })
+// Watch searchText and category_id
+watch([searchText, category_id], () => {
+  fetchItemsDebounced()
+})
 
 const goToUnitPage = () => {
   router.push('/admin/unit') // Replace with your route name
@@ -317,6 +272,9 @@ const fetchItems = async (url = '/items') => {
         category_id: category_id.value || null
       }
     })
+
+    console.log('Items fetched:', response.data)
+
     const paginated = response.data.data
     state.items = paginated.data
     state.pagination.currentPage = paginated.current_page

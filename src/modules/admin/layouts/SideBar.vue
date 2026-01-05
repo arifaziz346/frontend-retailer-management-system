@@ -87,6 +87,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import Expense from '../pages/expense/Expense.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -94,7 +95,7 @@ const router = useRouter()
 /* ---------------- MENU DATA ---------------- */
 const menu = ref([
   // { name: 'Item', route: '/admin/item' },
-  { name:'Stock',
+  { name:'Inventory',
     open:false,
     children:[
       { name: 'Item', route: '/admin/item' },
@@ -103,7 +104,7 @@ const menu = ref([
     ]
 
   },
-  { name: 'Supplier', route: '/admin/supplier' },
+  
   {
     name: 'Sale',
     open: false,
@@ -113,6 +114,7 @@ const menu = ref([
       // { name: 'Report', route: '/admin/report-sale-items' },
     ]
   },
+  { name: 'Supplier', route: '/admin/supplier' },
   {
     name: 'Report',
     open: false,
@@ -123,7 +125,17 @@ const menu = ref([
     ]
   },
   { name: 'Credit', route: '/admin/credit-customers' },
-  { name: 'Expense', route: '/admin/expense' },
+
+  // <!------------Expense--------->
+  {
+    name: 'Expense',
+    open: false,
+    children: [
+      { name: 'Expense', route: '/admin/expense' },
+      { name: 'Category', route: '/admin/expense-category' },
+      
+    ]
+  },
 
   {
     name: 'Account',
