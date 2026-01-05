@@ -274,13 +274,13 @@
 
 <div ref="invoiceRef" v-if="state.supplier_order_items && state.supplier_order_items.length" class="overflow-x-auto border border-gray-300 rounded-xs shadow-sm m-2">
 
-     <div class="hidden print:flex w-full h-16  items-center justify-center text-2xl font-bold border-t border-b border-gray-300 bg-gray-100 space-x-2">
+     <!-- <div class="hidden print:flex w-full h-16  items-center justify-center text-2xl font-bold border-t border-b border-gray-300 bg-gray-100 space-x-2"> -->
   <!-- Icon -->
-  <i class="pi pi-box text-3xl"></i>
+  <!-- <i class="pi pi-box text-3xl"></i> -->
 
   <!-- Text -->
-  <span>Item Details</span>
-</div>
+  <!-- <span>Item Details</span> -->
+  <!-- </div> -->
 
     <!-- Invoice Header -->
 <div class="w-full border mt-1 border-gray-300 bg-gray-100 p-5  rounded-md">
@@ -295,7 +295,9 @@
         <span class="font-medium text-gray-800">
           Supplier Name:
           <span class="font-normal">{{ state.supplier?.name || '-' }}</span>
-        </span>
+          <div class="text-[11px] text-slate-400 font-medium tracking-tight">Company Name:{{ state.supplier?.company_name }}</div>
+          </span>
+          
       </div>
 
       <div class="flex items-center space-x-2">

@@ -1,13 +1,11 @@
-// stores/auth.js
 import { defineStore } from 'pinia'
 
 function isTokenExpired(token) {
   try {
     const payload = JSON.parse(atob(token.split('.')[1]))
-    const expiry = payload.exp * 1000 // convert seconds → milliseconds
-    return Date.now() > expiry
+    return Date.now() > payload.exp * 1000 // convert seconds → ms
   } catch (e) {
-    return true // invalid or expired
+    return true
   }
 }
 
@@ -24,7 +22,6 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
-    // ✅ Save user & token
     setAuth(user, token) {
       this.user = user
       this.token = token
@@ -33,16 +30,14 @@ export const useAuthStore = defineStore('auth', {
       this.isReady = true
     },
 
-    // ✅ Clear user & token
     clearAuth() {
       this.user = null
       this.token = null
       localStorage.removeItem('user')
       localStorage.removeItem('token')
-      this.isReady = false
+      this.isReady = true // prevent infinite loop in router
     },
 
-    // ✅ Initialize authentication on app load
     async initializeAuth() {
       try {
         const user = localStorage.getItem('user')
@@ -59,9 +54,10 @@ export const useAuthStore = defineStore('auth', {
         }
       } catch (error) {
         console.error('Error restoring auth:', error)
+        this.clearAuth()
       } finally {
         this.isReady = true
       }
-    },
+    }
   },
 })

@@ -165,18 +165,27 @@ export default [
         path:'customer',
         name:'admin.customer',
         component: ()=> import('./pages/customer/Customer.vue')
+        ,meta: { requiresAuth: true, role: 'admin' } // ✅ added
       }
       ,
       {
         path:'admins',
         name:'admin.admins',
         component: ()=> import('./pages/admin/Admin.vue')
+        ,meta: { requiresAuth: true, role: 'admin' } // ✅ added
+      },
+      {
+        path:'admins/permissions-admin/:id?',
+        name:'admin.permissions-admin',
+        component: ()=> import('./pages/admin/Permissions_Admin.vue')
+        ,meta: { requiresAuth: true, role: 'admin' } // ✅ added
       }
       ,
       {
         path:'about',
         name:'admin.about',
         component: ()=> import('./pages/about/About.vue')
+        ,meta: { requiresAuth: true, role: 'admin' } // ✅ added
       }
       ,
     ]

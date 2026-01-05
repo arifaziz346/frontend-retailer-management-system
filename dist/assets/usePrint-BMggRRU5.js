@@ -1,0 +1,1 @@
+import{n as i}from"./index-D2-y90KB.js";function a(){return{printElement:async n=>{if(!n.value)return;await i();const t=n.value.innerHTML,o=document.body.innerHTML;document.body.innerHTML=t,window.print(),document.body.innerHTML=o,window.location.reload()}}}export{a as u};

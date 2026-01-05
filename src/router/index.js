@@ -30,7 +30,7 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const auth = useAuthStore()
 
-  // Restore auth state
+  // Wait until Pinia auth store is ready
   if (!auth.isReady) {
     await auth.initializeAuth()
   }
@@ -38,63 +38,29 @@ router.beforeEach(async (to, from, next) => {
   const isLoggedIn = Boolean(auth.token)
   const userRole = auth.user?.role
 
-  console.log('Route Check:', {
-    to: to.path,
-    isLoggedIn,
-    userRole
-  })
-
-  /* =========================
-     ADMIN ROUTES
-  ========================= */
-  if (to.path.startsWith('/admin')) {
-    // Allow admin login
-    if (to.path === '/admin/login') {
-      if (isLoggedIn && userRole === 'admin') {
-        return next('/admin/dashboard')
-      }
-      return next()
-    }
-
-    // Not logged in → admin login
+  // Handle routes that require auth
+  if (to.meta.requiresAuth) {
     if (!isLoggedIn) {
+      // Not logged in → redirect to login
       return next('/admin/login')
     }
 
-    // Logged in but not admin
-    if (userRole !== 'admin') {
-      return next('/user/index')
+    if (to.meta.role && to.meta.role !== userRole) {
+      // Logged in but wrong role → redirect to dashboard
+      return next(userRole === 'admin' ? '/admin/sale' : '/user/index')
     }
 
     return next()
   }
 
-  /* =========================
-     USER ROUTES
-  ========================= */
-  if (to.path.startsWith('/user')) {
-    // Allow user login
-    if (to.path === '/user/login') {
-      if (isLoggedIn && userRole === 'customer') {
-        return next('/user/index')
-      }
-      return next()
-    }
-
-    // Not logged in → user login
-    if (!isLoggedIn) {
-      return next('/user/login')
-    }
-
-    // Logged in but wrong role
-    if (userRole !== 'customer') {
-      return next('/admin/dashboard')
-    }
-
-    return next()
+  // Allow login page if not logged in
+  if (to.path === '/admin/login' && isLoggedIn && userRole === 'admin') {
+    return next('/admin/sale')
   }
 
   next()
 })
+
+
 
 export default router

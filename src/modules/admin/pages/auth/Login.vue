@@ -66,7 +66,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref,nextTick  } from 'vue'
 import { useRouter } from 'vue-router'
 import { VueSpinnerDots } from 'vue3-spinners'
 import api from '@/plugins/axios'
@@ -88,41 +88,30 @@ const handleLogin = async () => {
   errors.value = {}
 
   try {
-    console.log('🔹 Login request started')
-
-    // ❌ No Authorization header here (handled by interceptor rule)
     const { data } = await api.post('/admin/login', {
       email: form.value.email,
       password: form.value.password,
     })
 
-    console.log('✅ Login success:', data)
-
-    // 🔐 Store JWT + user
+    // Save auth state
     auth.setAuth(data.user, data.access_token)
 
-    // 🚀 Redirect
-    if (data.user.role === 'admin') {
-      router.replace('/admin/sale')
-    } else {
-      router.replace('/user/index')
-    }
-  } catch (err) {
-    console.error('❌ Login failed', err)
+    // Wait for reactivity to settle
+    await nextTick()
 
+    // Navigate after auth state is ready
+    router.replace(data.user.role === 'admin' ? '/admin/sale' : '/user/index')
+  } catch (err) {
     if (err.response?.status === 401) {
-      errors.value = {
-        email: ['Invalid email or password'],
-      }
+      errors.value = { email: ['Invalid email or password'] }
     } else if (err.response?.data?.errors) {
       errors.value = err.response.data.errors
     } else {
-      errors.value = {
-        email: ['Server error. Please try again later.'],
-      }
+      errors.value = { email: ['Server error. Please try again later.'] }
     }
   } finally {
     loading.value = false
   }
 }
+
 </script>

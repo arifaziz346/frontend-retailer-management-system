@@ -36,7 +36,7 @@
 
       <button
         class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-md flex items-center gap-2"
-        @click="openModal()"
+        @click="()=> {openModal(),reset()}"
       >
         <i class="pi pi-plus"></i>
         <span>Add Admin</span>
@@ -56,7 +56,7 @@
                 <th class="px-4 py-3">Name</th>
                 <th class="px-4 py-3">Email</th>
                 <th class="px-4 py-3">Phone</th>
-                <th class="px-4 py-3">Region</th>
+                <th class="px-4 py-3">Role</th>
                 <th class="px-4 py-3">Status</th>
                 <th class="px-4 py-3 text-center">Action</th>
               </tr>
@@ -72,7 +72,7 @@
                 <td class="px-4 py-2">{{ admin.name }}</td>
                 <td class="px-4 py-2">{{ admin.email }}</td>
                 <td class="px-4 py-2">{{ admin.phone }}</td>
-                <td class="px-4 py-2">{{ admin.region }}</td>
+                <td class="px-4 py-2">{{ admin.role }}</td>
                 <td class="px-4 py-2">
                   <span
                     :class="[
@@ -100,6 +100,14 @@
                     >
                       <i class="pi pi-trash"></i> Delete
                     </button>
+
+                    <button
+
+                      class="bg-green-600 text-white px-3 py-1 rounded-md w-full sm:w-auto text-center"
+                      @click="viewAdmin(admin.id)"
+                    >
+                      <i class="pi pi-eye"></i> View
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -108,7 +116,7 @@
         </div>
 
         <!-- Pagination -->
-        <div class="flex justify-between items-center p-4 bg-gray-50 text-sm">
+        <!-- <div class="flex justify-between items-center p-4 bg-gray-50 text-sm">
           <button
             @click="fetchAdmins(state.admins.prev_page_url)"
             :disabled="!state.admins.prev_page_url"
@@ -124,7 +132,7 @@
           >
             Next
           </button>
-        </div>
+        </div> -->
       </div>
     </main>
             </div>
@@ -157,12 +165,25 @@
         <FormInput label="Name" v-model="form.name" :error="errors.name" />
         <FormInput label="Email" v-model="form.email" :error="errors.email" />
         <FormInput label="Phone" v-model="form.phone" :error="errors.phone" />
-        <FormInput label="Region" v-model="form.region" :error="errors.region" />
+        <!-- <FormInput label="Address" v-model="form.address" :error="errors.address" /> -->
 
-        <select v-model="form.status" class="border rounded-lg w-full px-3 py-2 focus:ring-blue-500">
+        <div class="flex-1">
+            <SelectOption
+              v-model="form.role"
+              :list="user_roles"
+              label="Select Role"
+              :error="errors.role"
+            />
+          </div>
+        <!-- <select v-model="form.status" class="border rounded-lg w-full px-3 py-2 focus:ring-blue-500">
           <option value="active">Active</option>
           <option value="inactive">Inactive</option>
-        </select>
+        </select> -->
+
+        <!-- <select v-model="form.role" class="border rounded-lg w-full px-3 py-2 focus:ring-blue-500">
+          <option value="active">Admin</option>
+          <option value="inactive">Saleman</option>
+        </select> -->
 
         <FormInput
           label="Password"
@@ -179,13 +200,19 @@
 import { ref, reactive, onMounted } from 'vue'
 import api from '@/plugins/axios';
 import { VueSpinnerDots } from 'vue3-spinners'
+import { useRouter } from 'vue-router';
 import { toast } from "@/utils/toast";
 import BaseModal from "@/components/BaseModal.vue";
 import FormInput from "@/components/admin/FormInput.vue"
+import SelectOption from '@/components/SelectOption.vue';
 // import { useAuthStore } from '@/stores/auth';
 const state = reactive({
   admins: { data: [] }
 })
+
+
+const router = useRouter();
+
 const isLoading = ref(false)
 const showModal = ref(false)
 const editMode = ref(false)
@@ -194,19 +221,25 @@ const form = reactive({
   name: '',
   email: '',
   phone: '',
-  region: '',
+  role: '',
   status: 'active',
   password: ''
 })
 
+const user_roles = [
+  { label: 'super_admin', value: 'super_admin' },
+   { label: 'Saleman', value: 'Saleman' },
+   { label: 'admin', value: 'admin' },
+];
+
 const user = reactive({});
 const errors = reactive({})
 
-const fetchAdmins = async (url = '/admin/admins') => {
+const fetchAdmins = async (url = 'users') => {
   try {
     isLoading.value = true
     const res = await api.get(url)
-    state.admins = res.data.data
+    state.admins = res.data
   } finally {
     isLoading.value = false
   }
@@ -214,7 +247,7 @@ const fetchAdmins = async (url = '/admin/admins') => {
 
 const openModal = () => {
   editMode.value = false
-  Object.assign(form, { id: null, name: '', email: '', phone: '', region: '', status: 'active', password: '' })
+  Object.assign(form, { id: null, name: '', email: '', phone: '', role: '', status: 'active', password: '' })
   errors.value = {}
   showModal.value = true
 }
@@ -229,7 +262,7 @@ const editAdmin = (admin) => {
 const createAdmin = async () => {
   try {
     isLoading.value = true
-    const res = await api.post('/admin/admins', form)
+    const res = await api.post('/users/register', form)
     toast.success(res.data.message)
     showModal.value = false
     fetchAdmins()
@@ -244,7 +277,7 @@ const createAdmin = async () => {
 const updateAdmin = async () => {
   try {
     isLoading.value = true
-    const res = await api.put(`/admin/admins/${form.id}`, form)
+    const res = await api.put(`/users/update/${form.id}`, form)
     toast.success(res.data.message)
     showModal.value = false
     fetchAdmins()
@@ -259,7 +292,7 @@ const deleteAdmin = async (id) => {
   if (!confirm('Are you sure you want to delete this admin?')) return
   try {
     isLoading.value = true
-    const res = await api.delete(`/admin/admins/${id}`)
+    const res = await api.delete(`/users/${id}`)
     toast.success(res.data.message)
     fetchAdmins()
   } catch (err) {
@@ -268,6 +301,15 @@ const deleteAdmin = async (id) => {
   finally{
     isLoading.value = false
   }
+}
+
+const viewAdmin =  (id) =>{
+        router.push({name:'admin.permissions-admin',params:{id: id}});
+}
+
+const reset = () => {
+  Object.assign(form, { id: null, name: '', email: '', phone: '', region: '', status: 'active', password: '' })
+  Object.keys(errors).forEach(key => errors[key] = '')
 }
 
 onMounted(() => fetchAdmins())
