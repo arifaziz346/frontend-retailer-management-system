@@ -197,25 +197,29 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
-import api from '@/plugins/axios';
+import { ref, reactive, onMounted, watch } from 'vue'
+import api from '@/plugins/axios'
 import { VueSpinnerDots } from 'vue3-spinners'
-import { useRouter } from 'vue-router';
-import { toast } from "@/utils/toast";
-import BaseModal from "@/components/BaseModal.vue";
-import FormInput from "@/components/admin/FormInput.vue"
-import SelectOption from '@/components/SelectOption.vue';
-// import { useAuthStore } from '@/stores/auth';
-const state = reactive({
-  admins: { data: [] }
-})
+import { useRouter } from 'vue-router'
+import { toast } from '@/utils/toast'
+import BaseModal from '@/components/BaseModal.vue'
+import FormInput from '@/components/admin/FormInput.vue'
+import SelectOption from '@/components/SelectOption.vue'
 
+/* =========================
+   STATE
+========================= */
 
-const router = useRouter();
+const router = useRouter()
 
 const isLoading = ref(false)
 const showModal = ref(false)
 const editMode = ref(false)
+
+const state = reactive({
+  admins: { data: [] }
+})
+
 const form = reactive({
   id: null,
   name: '',
@@ -226,49 +230,66 @@ const form = reactive({
   password: ''
 })
 
+const errors = reactive({})
+
 const user_roles = [
   { label: 'super_admin', value: 'super_admin' },
-   { label: 'Saleman', value: 'Saleman' },
-   { label: 'admin', value: 'admin' },
-];
+  { label: 'Saleman', value: 'Saleman' },
+  { label: 'admin', value: 'admin' },
+]
 
-const user = reactive({});
-const errors = reactive({})
+/* =========================
+   HELPERS
+========================= */
+
+const clearErrors = () => {
+  Object.keys(errors).forEach(key => delete errors[key])
+}
+
+const resetForm = () => {
+  Object.assign(form, {
+    id: null,
+    name: '',
+    email: '',
+    phone: '',
+    role: '',
+    status: 'active',
+    password: ''
+  })
+}
+
+/* =========================
+   API CALLS
+========================= */
 
 const fetchAdmins = async (url = 'users') => {
   try {
     isLoading.value = true
     const res = await api.get(url)
     state.admins = res.data
+  } catch (err) {
+    toast.error('Failed to fetch users')
   } finally {
     isLoading.value = false
   }
 }
 
-const openModal = () => {
-  editMode.value = false
-  Object.assign(form, { id: null, name: '', email: '', phone: '', role: '', status: 'active', password: '' })
-  errors.value = {}
-  showModal.value = true
-}
-
-const editAdmin = (admin) => {
-  editMode.value = true
-  Object.assign(form, admin)
-  form.password = ''
-  showModal.value = true
-}
-
 const createAdmin = async () => {
   try {
     isLoading.value = true
+    clearErrors()
+
     const res = await api.post('/users/register', form)
     toast.success(res.data.message)
+
     showModal.value = false
     fetchAdmins()
   } catch (err) {
-    console.log(err)
-    if (err.response?.data?.errors) Object.assign(errors, err.response.data.errors)
+    if (err.response?.data?.errors) {
+      Object.assign(errors, err.response.data.errors)
+    } else {
+      toast.error('Something went wrong')
+    }
   } finally {
     isLoading.value = false
   }
@@ -277,12 +298,19 @@ const createAdmin = async () => {
 const updateAdmin = async () => {
   try {
     isLoading.value = true
+    clearErrors()
+
     const res = await api.put(`/users/update/${form.id}`, form)
     toast.success(res.data.message)
+
     showModal.value = false
     fetchAdmins()
   } catch (err) {
-    if (err.response?.data?.errors) Object.assign(errors, err.response.data.errors)
+    if (err.response?.data?.errors) {
+      Object.assign(errors, err.response.data.errors)
+    } else {
+      toast.error('Something went wrong')
+    }
   } finally {
     isLoading.value = false
   }
@@ -290,6 +318,7 @@ const updateAdmin = async () => {
 
 const deleteAdmin = async (id) => {
   if (!confirm('Are you sure you want to delete this admin?')) return
+
   try {
     isLoading.value = true
     const res = await api.delete(`/users/${id}`)
@@ -297,20 +326,68 @@ const deleteAdmin = async (id) => {
     fetchAdmins()
   } catch (err) {
     toast.error('Failed to delete admin')
-  }
-  finally{
+  } finally {
     isLoading.value = false
   }
 }
 
-const viewAdmin =  (id) =>{
-        router.push({name:'admin.permissions-admin',params:{id: id}});
+/* =========================
+   MODAL ACTIONS
+========================= */
+
+const openModal = () => {
+  editMode.value = false
+  resetForm()
+  clearErrors()
+  showModal.value = true
 }
 
-const reset = () => {
-  Object.assign(form, { id: null, name: '', email: '', phone: '', region: '', status: 'active', password: '' })
-  Object.keys(errors).forEach(key => errors[key] = '')
+const editAdmin = (admin) => {
+  editMode.value = true
+  clearErrors()
+
+  Object.assign(form, {
+    id: admin.id,
+    name: admin.name,
+    email: admin.email,
+    phone: admin.phone,
+    role: admin.role,
+    status: admin.status,
+    password: ''
+  })
+
+  showModal.value = true
 }
 
-onMounted(() => fetchAdmins())
+/* =========================
+   NAVIGATION
+========================= */
+
+const viewAdmin = (id) => {
+  router.push({ name: 'admin.permissions-admin', params: { id } })
+}
+
+/* =========================
+   AUTO CLEAR ERRORS ON INPUT
+========================= */
+
+watch(
+  form,
+  () => {
+    Object.keys(errors).forEach(key => {
+      if (form[key]) {
+        errors[key] = ''
+      }
+    })
+  },
+  { deep: true }
+)
+
+/* =========================
+   LIFECYCLE
+========================= */
+
+onMounted(() => {
+  fetchAdmins()
+})
 </script>
