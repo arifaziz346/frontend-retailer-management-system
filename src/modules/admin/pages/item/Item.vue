@@ -161,7 +161,7 @@
               id="unit"
               v-model="form.unit"
               :options="state.units.map(u => ({ label: u.name, value: u.name }))"
-              placeholder="Unit"
+              placeholder="Select Unit"
               class="flex-1"
               :error="errors.unit"
             />

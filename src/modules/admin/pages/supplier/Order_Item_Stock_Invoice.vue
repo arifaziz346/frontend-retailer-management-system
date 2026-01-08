@@ -854,6 +854,7 @@ const edit = (order_items) => {
     form.quantity = order_items.quantity;
     form.cost_price = order_items.cost_price;
     form.sale_price = order_items.sale_price;
+    form.unit = order_items.unit;
     form.total_price = (order_items.cost_price * order_items.quantity).toFixed(2);
     showModal.value = true;
 }
