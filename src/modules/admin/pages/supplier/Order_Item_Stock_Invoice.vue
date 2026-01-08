@@ -650,18 +650,24 @@ const addOrUpdateStockItem = async (form) => {
   isSaveLoading.value = true;
     try {
 
-         // Exclude fields using destructuring
-  const { total_price, ...dataToSend } = form;
+         
 
         let response =''
         if (isEditSupplierOrderItems.value) {
             // Update existing stock item
+
+            // Exclude fields using destructuring
+             const { total_price, ...dataToSend } = form;
+
             dataToSend.id = form.id; // Include the ID for updating
             response = await api.put(`/supplier-order-items/${form.id}`, dataToSend);
             toast.success(response.data.message || "Stock item updated successfully");
              resetForm();
         } else {
             // Create new stock item
+            // Exclude fields using destructuring
+            //Here we will exclude id because in create if we send id it will giver integrity error data duplication
+             const { id,total_price, ...dataToSend } = form;
         response = await api.post("/supplier-order-items", dataToSend);
         toast.success(response.data.message || "Stock item added successfully");
          resetForm();
