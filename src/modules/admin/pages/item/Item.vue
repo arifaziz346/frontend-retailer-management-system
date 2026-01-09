@@ -104,14 +104,27 @@
                 </td>
 
                 <td class="px-6 py-4 text-right">
-                  <div class="flex justify-end items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div class="flex justify-end items-center gap-1">
                     <button @click="edit(item)" class="p-2 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors">
                       <i class="pi pi-pencil text-sm"></i>
                     </button>
                     <button @click="onDelete(item.id)" class="p-2 hover:bg-red-100 text-red-500 rounded-lg transition-colors">
                       <i class="pi pi-trash text-sm"></i>
                     </button>
+
+                    <button
+    @click="openUpdateStockModal(item)"
+    :disabled="isLoading"
+    class="text-sm bg-blue-600 text-white p-1 rounded disabled:bg-gray-400">
+    {{ isLoading ? 'Wait...' : 'Update-Stock' }}
+  </button>
                   </div>
+                </td>
+
+                <td class="px-6 py-4 text-right">
+                  
+
+
                 </td>
               </tr>
             </tbody>
@@ -144,6 +157,19 @@
         <div class="md:col-span-2">
            <FormInput id="name" label="Item Name" v-model="form.name" placeholder="Enter product name..." :error="errors.name" />
         </div>
+
+        <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        New Stock (Quantity)
+      </label>
+
+      <FormInput
+        id="quantity_in_stock"
+        type="number"
+        v-model="form.quantity_in_stock"
+        :error="errors.quantity_in_stock"
+      />
+    </div>
         
         <TypeSelector
           v-model="form.category_id"
@@ -173,6 +199,24 @@
         <FormInput v-model="form.sale_price" label="Selling Price" type="number" />
       </div>
     </BaseModal>
+
+      <!-------Base modal For Update Stock---------->
+     <BaseModal
+      v-model="showUpdateStockModal"
+      :title="'Update Stock'"
+      @save="() => updateStock()"
+      :disableSaveBtn="isLoading"
+      panelClass="max-w-2xl">
+
+    <FormInput
+        id="quantity_in_stock"
+        type="number"
+        v-model="new_quantity_in_stock"
+        :error="errors.new_quantity_in_stock"
+      />
+
+      </BaseModal>
+
   </div>
 </template>
 
@@ -195,8 +239,9 @@ import { round,profitPercentage } from "@/utils/helper";
 import _ from 'lodash'
 const route = useRoute();
 const router = useRouter();
+const showUpdateStockModal = ref(false);
 const searchQuery = defineModel() // this binds to v-model from parent
-
+const new_quantity_in_stock =ref(0);
 const state = reactive({
   items: [],
   units:[],
@@ -223,6 +268,7 @@ const form = reactive({
   sale_price: "",
   cost_price: "",
   stock: "",
+  quantity_in_stock:"",
   unit: "",
 });
 
@@ -231,7 +277,9 @@ const errors = reactive({
   sale_price: '',
   category_id: '',
   cost_price: '',
+  quantity_in_stock:'',
   unit: '',
+  new_quantity_in_stock:''
 });
 
 const handleFormErrors = useFormErrors(errors);
@@ -336,6 +384,7 @@ const onSaveOrUpdate = async () => {
       name: form.name,
       sale_price: form.sale_price,
       cost_price: form.cost_price,
+      quantity_in_stock:form.quantity_in_stock,
       unit: form.unit,
       category_id: form.category_id,
     };
@@ -412,6 +461,44 @@ const fetchUnits = async () => {
     console.log("Error fetching units:", err);
   }
 };
+
+
+const openUpdateStockModal = async (item)=>{
+  item_id.value = item.id
+  showUpdateStockModal.value  = true;
+}
+
+//------------------Update Stock-----------------------
+const updateStock = async ()=>{
+
+  isLoading.value = true
+  try {
+
+
+    const response  = await api.post(`/item/update/stock`,{
+      'new_quantity':new_quantity_in_stock.value,
+      'item_id':item_id.value
+    });
+
+    if(response.data.success){
+      showUpdateStockModal.value = false
+      toast.success(response.data.message);
+      fetchItems();
+    }
+
+    
+
+
+    
+
+    
+  } catch (error) {
+    // console.error("Error saving/updating item:", error);
+    handleFormErrors(error);
+  } finally{
+    isLoading.value = false
+  }
+}
 
 // ------------------- Mounted -------------------
 onMounted(async () => {
