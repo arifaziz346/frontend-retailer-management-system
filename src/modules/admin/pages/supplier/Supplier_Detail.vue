@@ -354,7 +354,7 @@ const editSupplierOrderOpen = (supplier) => {
   form.supplier_invoice_number = supplier.supplier_invoice_number;
   form.transport_cost = supplier.transport_cost;
   form.total_amount = supplier.total_amount;
-  form.total_items = supplier.total_items;
+  // form.total_items = supplier.total_items;
   form.supplier_invoice_date = supplier.supplier_invoice_date;
   showModal.value = true;
 };

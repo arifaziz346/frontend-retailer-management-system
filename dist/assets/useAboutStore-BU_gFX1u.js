@@ -1,0 +1,1 @@
+import{D as u,r as e,E as r}from"./index-DRH77bNi.js";import{a as s}from"./axios-CBe-jvwZ.js";const d=u("about",()=>{const t=e(null),a=e(!1),l=e(!1);return l.value||(a.value=!0,s.get("/admin/about").then(o=>{t.value=o.data.data,l.value=!0}).catch(o=>{console.error("Failed to load About info",o)}).finally(()=>{a.value=!1})),{about:r(t),isLoading:r(a)}});export{d as u};
