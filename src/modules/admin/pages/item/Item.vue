@@ -483,6 +483,8 @@ const updateStock = async ()=>{
     if(response.data.success){
       showUpdateStockModal.value = false
       toast.success(response.data.message);
+      //reset 
+      new_quantity_in_stock.value = 0
       fetchItems();
     }
 
