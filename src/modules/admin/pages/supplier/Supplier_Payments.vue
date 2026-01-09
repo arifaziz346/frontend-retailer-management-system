@@ -59,7 +59,7 @@
 
 
 
-        <div ref="invoiceRef" v-if="state.payments && state.payments.length" class="w-full overflow-x-scroll border  border-gray-300 rounded-md shadow-sm ">
+        <div ref="invoiceRef"  class="w-full overflow-x-scroll border  border-gray-300 rounded-md shadow-sm ">
 
 
             <div class="w-full bg flex flex-row items-center  print:hidden bg-gray-800 text-white p-1.5 justify-between">
@@ -169,7 +169,7 @@
 
 </div>
 
-          <table class="min-w-full border border-gray-200 bg-white rounded-xl overflow-hidden shadow-sm text-xs sm:text-sm md:text-base">
+          <table v-if="state.payments && state.payments.length" class="min-w-full border border-gray-200 bg-white rounded-xl overflow-hidden shadow-sm text-xs sm:text-sm md:text-base">
             <thead class="bg-gray-100 text-gray-700 text-xs">
               <tr>
                 <th class="px-4 py-2 text-left font-semibold">#</th>
@@ -237,14 +237,7 @@
             </tbody>
           </table>
 
-          <!-- Pagination -->
-          <Pagination
-            :pagination="state.pagination"
-            @page-change="fetchPayments"
-          />
-        </div>
-
-        <!-- No Data -->
+          <!-- No Data -->
         <div
           v-else
           class="flex flex-col items-center justify-center h-[60vh] text-center"
@@ -259,6 +252,15 @@
             Try adding new payments to see them listed here.
           </p>
         </div>
+
+          <!-- Pagination -->
+          <Pagination
+            :pagination="state.pagination"
+            @page-change="fetchPayments"
+          />
+        </div>
+
+        
 
     </main>
 
