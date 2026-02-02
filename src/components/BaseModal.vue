@@ -34,6 +34,8 @@
             <DialogTitle class="text-lg font-bold text-gray-800 mb-4 px-4 pt-4">
               {{ props.title }}
             </DialogTitle>
+            <span v-if="about_modal" class="text-xs text-gray-400 ml-5">{{about_modal}}</span>
+
 
             <!-- Content (scrollable) -->
             <div class="flex-1 overflow-y-auto px-4 space-y-4 mb-5">
@@ -65,6 +67,7 @@ const props = defineProps({
   showCancelBtn:{type:String,default:true},
   showFooter:{type:String,default:true},
   disableSaveBtn:{type:Boolean,default:false},
+  about_modal: { type: String, default: '' },
 
 })
 

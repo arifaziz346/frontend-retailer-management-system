@@ -333,27 +333,27 @@ const viewAccountDetail = (id)=>{
   router.push({ name: 'account-detail', params:{ id: id } });  // Programmatic navigation
 }
 
-const fetchAccounts = async (url=`/accounts`) => {
-try {
-  isLoading.value = true;
-  const response = await api.get(url);
-  const data = response.data.data.data;
-  // console.log('account-',data);
-  state.accounts = data;
-  // state.employee_name = data.employee.name;
-  const paginated = response.data.data;
-  state.pagination.currentPage = paginated.current_page ?? 1;
-  state.pagination.lastPage = paginated.last_page ?? 1;
-  state.pagination.nextPageUrl = paginated.next_page_url ?? null;
-  state.pagination.prevPageUrl = paginated.prev_page_url ?? null;
-  
-} catch (error) {
-  console.log('error fetching accounts', error);
+const fetchAccounts = async (url = '/accounts') => {
+  try {
+    isLoading.value = true
+
+    const response = await api.get(url)
+
+    // ✅ records
+    state.accounts = response.data.data.data
+
+    // ✅ pagination (FULL object, snake_case)
+    state.pagination = response.data.data
+
+    console.log('accounts pagination', state.pagination)
+
+  } catch (error) {
+    console.log('error fetching accounts', error)
+  } finally {
+    isLoading.value = false
+  }
 }
-finally{
-  isLoading.value = false;
-}
-};
+
 
 const resetForm =()=>{
   form.account_name='';

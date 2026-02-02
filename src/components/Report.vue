@@ -18,7 +18,7 @@
             <option value="15days">15 Days</option>
             <option value="6months">6 Months</option>
             <option value="yearly">Yearly</option>
-            <!-- <option value="custom">Custom Range</option> -->
+            <option value="custom">Custom Range</option>
           </select>
 
           <div v-if="localFilters.type === 'custom'" class="flex items-center gap-2 animate-in fade-in duration-300">
@@ -105,9 +105,8 @@ const localFilters = ref({
   end_date: '',
 })
 
-// --- Logic Functions ---
-
 const handleTypeChange = () => {
+  // If not custom, clear dates and fetch immediately
   if (localFilters.value.type !== 'custom') {
     localFilters.value.start_date = '';
     localFilters.value.end_date = '';
@@ -118,14 +117,12 @@ const handleTypeChange = () => {
 const emitFilter = () => {
   if (localFilters.value.type === 'custom') {
     if (!localFilters.value.start_date || !localFilters.value.end_date) {
-      alert("Please select both dates for the range.");
+      alert("Please select both start and end dates.");
       return;
     }
   }
   emit('filter', { ...localFilters.value });
 }
-
-// --- Formatting Functions (This fixes your error) ---
 
 const formatCurrency = (val) => {
   const num = Number(val) || 0;
@@ -138,15 +135,16 @@ const formatCurrency = (val) => {
 
 const getValueClass = (key, val) => {
   const num = Number(val) || 0;
-  // Make Profit Green, Expenses/Discounts Red
   if (key === 'profit') return num >= 0 ? 'text-emerald-600' : 'text-rose-600';
   if (key === 'expense' || key === 'discount') return 'text-rose-500';
   return 'text-slate-700';
 }
 
 const dateRangeText = computed(() => {
-  if (localFilters.value.type === 'custom' && localFilters.value.start_date) {
-    return `Range: ${localFilters.value.start_date} to ${localFilters.value.end_date || '...'}`;
+  if (localFilters.value.type === 'custom') {
+    const start = localFilters.value.start_date || '...';
+    const end = localFilters.value.end_date || '...';
+    return `Range: ${start} to ${end}`;
   }
   const today = new Date().toLocaleDateString('en-GB');
   return `${localFilters.value.type.toUpperCase()} Report | Updated ${today}`;

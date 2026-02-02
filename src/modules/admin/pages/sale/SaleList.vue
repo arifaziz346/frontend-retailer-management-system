@@ -62,14 +62,55 @@
               </td>
 
               <td class="px-6 py-4">
-                <div class="flex flex-col">
-                  <span class="font-semibold text-gray-900">{{ Number(sale.credit) === 1 ? sale.customer?.name || 'Walk-in Customer' : 'Walk-in Customer' }}</span>
-                  <div class="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
-                    <span><i class="pi pi-calendar text-[10px]"></i> {{ sale.sale_date || '-' }}</span>
-                    <span v-if="sale.customer?.phone_one">• {{ sale.customer.phone_one }}</span>
-                  </div>
-                </div>
-              </td>
+  <div class="flex flex-col">
+
+  <!-- Customer Name -->
+  <span class="font-semibold text-gray-900">
+
+    <!-- Credit Sale -->
+    <template v-if="Number(sale.credit) === 1">
+      {{ sale.customer?.name || 'Walk-in Customer' }}
+    </template>
+
+    <!-- Advance Hold -->
+    <template v-else-if="Number(sale.credit) === 2">
+      {{ sale.customer?.name || 'Advance Hold Customer' }}
+    </template>
+
+    <!-- Fast Pay -->
+    <template v-else-if="Number(sale.credit) === 0">
+      Walk-in Customer
+    </template>
+
+    <!-- Cash Sale -->
+    <template v-else>
+      Walk-in Customer
+    </template>
+
+  </span>
+
+  <!-- Payment Type -->
+  <span class="text-[11px] font-bold uppercase text-emerald-600"
+        v-if="Number(sale.credit) === 2">
+    Advance-Hold
+  </span>
+
+  <!-- Date & Phone -->
+  <div class="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
+    <span>
+      <i class="pi pi-calendar text-[10px]"></i>
+      {{ sale.sale_date || '-' }}
+    </span>
+
+    <span v-if="sale.customer?.phone_one">
+      • {{ sale.customer.phone_one }}
+    </span>
+  </div>
+
+</div>
+
+</td>
+
 
               <td class="px-6 py-4">
                 <span v-if="sale.return === 1" class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-gray-100 text-gray-500 border border-gray-200">
@@ -90,9 +131,9 @@
               <td class="px-6 py-4 text-sm">
                 <div class="flex flex-col">
                   <span class="text-gray-900 font-black">Rs. {{ sale.total_amount || 0 }}</span>
-                  <span v-if="sale.total_discount > 0" class="text-[10px] text-orange-500 font-medium">
+                  <!-- <span v-if="sale.total_discount > 0" class="text-[10px] text-orange-500 font-medium">
                     Disc: Rs. {{ sale.total_discount }}
-                  </span>
+                  </span> -->
                 </div>
               </td>
 
@@ -127,7 +168,11 @@
       </div>
 
       <div class="bg-gray-50 border-t border-gray-100 px-4 py-3">
-        <Pagination :pagination="state.pagination" @page-change="fetchSales" />
+        <Pagination
+       v-if="state.pagination && state.pagination.links?.length"
+       :pagination="state.pagination"
+       @page-change="fetchSales"/>
+
       </div>
     </div>
 
@@ -266,19 +311,16 @@ watch(searchQuery, () => {
 
 
 /* ---------------- FETCH SALES ---------------- */
-const fetchSales = async (url=`/sales`) => {
-  isLoading.value = isSearching.value ? false : true;
+const fetchSales = async (url = '/sales') => {
+  isLoading.value = !isSearching.value;
 
   try {
     const res = await api.get(url, {
-      params: {
-        search: search.value || null,
-      },
+      params: url === '/sales'
+        ? { search: search.value || null }
+        : {} // pagination already contains query
     });
 
-    console.log('res->>>',res.data);
-
-    // ✅ NO .value with reactive
     state.sales = res.data.data.data;
     state.pagination = res.data.data;
 
@@ -289,6 +331,7 @@ const fetchSales = async (url=`/sales`) => {
     isSearching.value = false;
   }
 };
+
 
 
 

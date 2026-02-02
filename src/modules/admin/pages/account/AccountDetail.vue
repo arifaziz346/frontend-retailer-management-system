@@ -69,20 +69,9 @@
       </div>
       
       <!------------------------------------Pagination------------------------------->  
-      <div class="flex m-1 justify-end" v-if="state.pagination.prevPageUrl || state.pagination.nextPageUrl">
-        <a 
-          v-if="state.pagination.prevPageUrl"
-          @click="accountFetch(state.pagination.prevPageUrl)" 
-          class="flex items-center justify-center px-3 h-8 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
-          Previous
-        </a>
-        <a 
-          v-if="state.pagination.nextPageUrl"
-          @click="accountFetch(state.pagination.nextPageUrl)" 
-          class="flex items-center justify-center px-3 h-8 ms-3 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
-          Next
-        </a>
-      </div>
+      <div class="bg-gray-50 border-t border-gray-100 px-4 py-3">
+      <Pagination :pagination="state.pagination" @page-change="fetchTransactions()" />
+    </div>
 
       <!---------------------------edit transaction modal-------------------------------->
     <VModal v-if="showModal" title="Edit-Transaction" width="sm" @close="showModal = false">
@@ -212,34 +201,32 @@ const totalWithdraw = computed(() => {
     .reduce((total, transaction) => total + Number(transaction.amount), 0);
 });
 
-const fetchTransactions = async(url=`account-detail/${route.params.id}`) =>{
-      try {
-      state.isloading = true
-      const response = await api.get(`${apiBaseUrl}/${url}`);
+const fetchTransactions = async (url = `account-detail/${route.params.id}`) => {
+  try {
+    state.isloading = true
 
-      const employee_detail = response.data.employee_detail
-      state.employee_name = employee_detail.employee_name
-      state.account_name = employee_detail.account_name
-      state.transactions = response.data.transactions
+    const response = await api.get(`${apiBaseUrl}/${url}`)
 
-       //--this if for pgination
-    const data = response.data
-    // console.log('test-pagination',response.data)
-    state.pagination.currentPage = data.current_page;
-    state.pagination.lastPage = data.last_page;
-    state.pagination.nextPageUrl = data.next_page_url;
-    state.pagination.prevPageUrl = data.prev_page_url;
-    //   state.transactions = response.data.data;
-      console.log('state.transactions-',employee_detail);
+    // ✅ employee info
+    const employeeDetail = response.data.employee_detail
+    state.employee_name = employeeDetail.employee_name
+    state.account_name = employeeDetail.account_name
 
-     } catch (error) {
-      console.log('error fetching  transactions', error);
-     }
-    finally{
-      state.isloading = false
-    }
+    // ✅ transactions data
+    state.transactions = response.data.transactions.data
 
-     }
+    // ✅ pagination (FULL paginator object)
+    state.pagination = response.data.transactions
+
+    console.log('transactions pagination', state.pagination)
+
+  } catch (error) {
+    console.log('error fetching transactions', error)
+  } finally {
+    state.isloading = false
+  }
+}
+
 
 async function deleteItem(transactionId) {
   try {

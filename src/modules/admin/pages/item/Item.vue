@@ -170,17 +170,7 @@
         :error="errors.quantity_in_stock"
       />
     </div>
-        
-        <TypeSelector
-          v-model="form.category_id"
-          :sub_categories="state.categories || []"
-          :error="errors?.category_id"
-          button_name="+ New"
-          label="Category"
-          @click_sub_category="navigateToSubcategory"
-        />
-
-        <div class="space-y-2">
+    <div class="space-y-2">
           <label class="block text-sm font-bold text-slate-700">Unit of Measure</label>
           <div class="flex gap-2">
             <Selector
@@ -194,6 +184,17 @@
             <button @click="goToUnitPage" class="p-2 bg-slate-100 rounded-lg hover:bg-slate-200"><i class="pi pi-plus"></i></button>
           </div>
         </div>
+        
+        <TypeSelector
+          v-model="form.category_id"
+          :sub_categories="state.categories || []"
+          :error="errors?.category_id"
+          button_name="+ New"
+          label="Category"
+          @click_sub_category="navigateToSubcategory"
+        />
+
+        
 
         <FormInput v-model="form.cost_price" label="Cost Price (Base)" type="number" />
         <FormInput v-model="form.sale_price" label="Selling Price" type="number" />
@@ -357,10 +358,12 @@ const resetForm = () => {
   form.cost_price = "";
   form.unit = "";
   form.category_id = category_id.value || 0;
+  form.quantity_in_stock ="";
   Object.keys(errors).forEach((key) => errors[key] = '');
   showModal.value = false;
   editItem.value = false;
   item_id.value = '';
+  
 };
 
 // ------------------- Edit Product -------------------
@@ -371,6 +374,7 @@ const edit = (item) => {
   form.sale_price = item.sale_price;
   form.cost_price = item.cost_price;
   form.unit = item.unit;
+  form.quantity_in_stock = item.quantity_in_stock;
   form.category_id = item.category_id;
   showModal.value = true;
 };

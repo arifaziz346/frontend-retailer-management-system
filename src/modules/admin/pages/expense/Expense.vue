@@ -124,7 +124,7 @@
         </div>
       </div>
 
-      <div 
+      <!-- <div 
         v-if="state.pagination.lastPage > 1" 
         class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm"
       >
@@ -132,7 +132,10 @@
           Page {{ state.pagination.currentPage }} of {{ state.pagination.lastPage }}
         </p>
         <Pagination :pagination="state.pagination" @page-change="fetchExpenses" />
-      </div>
+      </div> -->
+      <div class="bg-gray-50 border-t border-gray-100 px-4 py-3">
+      <Pagination :pagination="state.pagination" @page-change="fetchExpenses" />
+    </div>
     </div>
 
     <BaseModal
@@ -245,15 +248,16 @@ const fetchExpenses = async (url = '/expenses') => {
 
     const payload = res.data.data
 
-    // ✅ pagination
+    // ✅ data
     state.expenses = payload.expenses.data
-    state.pagination.currentPage = payload.expenses.current_page
-    state.pagination.lastPage = payload.expenses.last_page
-    state.pagination.nextPageUrl = payload.expenses.next_page_url
-    state.pagination.prevPageUrl = payload.expenses.prev_page_url
 
-    // ✅ total expense (from backend)
+    // ✅ pagination (FULL object, no mutation)
+    state.pagination = payload.expenses
+
+    // ✅ totals
     totalExpenseAmount.value = payload.total_expense_amount ?? 0
+
+    console.log('expense pagination', state.pagination)
 
   } catch (e) {
     console.error('Expense fetch failed', e)
@@ -261,6 +265,7 @@ const fetchExpenses = async (url = '/expenses') => {
     isLoading.value = false
   }
 }
+
 
 
 

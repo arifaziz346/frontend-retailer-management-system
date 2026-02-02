@@ -107,7 +107,7 @@
       <p class="text-gray-500 dark:text-gray-400 max-w-xs text-center">We couldn't find any credit customers matching your search or filters.</p>
     </div>
 
-    <div class="mt-8 flex justify-center">
+    <div class="bg-gray-50 border-t border-gray-100 px-4 py-3">
       <Pagination :pagination="state.pagination" @page-change="fetchCreditCustomers" />
     </div>
   </div>
@@ -144,29 +144,24 @@ const state = reactive({
 
 
 
-const fetchCreditCustomers = async (url = `/credit/customers`) => {
-try {
-     isLoading.value = true
-     const response = await api.get(url)
-     state.customers = response.data.data.data;
-     console.log('creadit view----',response.data);
+const fetchCreditCustomers = async (url = '/credit/customers') => {
+  try {
+    isLoading.value = true
 
-     const paginated = response.data.data;
-     console.log('paginated', paginated.current_page);
-    // If backend returns resource collection, adjust accordingly
-    state.pagination.currentPage = paginated.current_page ?? 1;
-    state.pagination.lastPage = paginated.last_page ?? 1;
-    state.pagination.nextPageUrl = paginated.next_page_url ?? null;
-    state.pagination.prevPageUrl = paginated.prev_page_url ?? null;
+    const response = await api.get(url)
 
-} catch (error) {
-    console.log('Error fetching customers',error)
-}
+    state.customers = response.data.data.data
+    state.pagination = response.data.data   // 👈 FULL paginator object
 
-finally{
+    console.log('pagination', state.pagination)
+
+  } catch (error) {
+    console.log('Error fetching customers', error)
+  } finally {
     isLoading.value = false
+  }
 }
-}
+
 
 const viewCustomerCredits =  (id) =>{
         router.push({name:'admin.credits-customer',params:{id: id}});

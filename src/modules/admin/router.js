@@ -47,6 +47,12 @@ export default [
         component: () => import('./pages/credit/Credits_Customer.vue'),
         meta: { requiresAuth: true, role: 'admin' }
       },
+      {
+        path:'advance-sale-items/:id',
+        name:'admin.advance-sale-items',
+        component: () => import('./pages/credit/advance/Index_deliver_sale_items.vue'),
+        meta: { requiresAuth: true, role: 'admin' }
+      },
       //--------------Customer Payments detail
        {
         path:'customer-payments/:id',
@@ -61,17 +67,32 @@ export default [
         component: () => import('./pages/supplier/Suppliers.vue'),
         meta: { requiresAuth: true, role: 'admin' }
       },
+
+      // Stock Invoices (Separate page)
+  {
+    path: '/Supplier/:supplier_id/invoices',
+    name: 'admin.supplier-stock-invoices',
+    component: () => import('./pages/supplier/supplier_detail/Stockinvoices.vue'),
+    meta: { requiresAuth: true }
+  },
+    // Invoice Items Detail
+  {
+    path: '/stock-invoice/:id/:supplier_id',
+    name: 'admin.stock-invoice',
+    component: () => import('./pages/supplier/supplier_detail/Order_Item_Stock_Invoice.vue'),
+    meta: { requiresAuth: true }
+  },
       {
         path: 'supplier-detail/:id',
         name: 'admin.supplier-detail',
-        component: () => import('./pages/supplier/Supplier_Detail.vue'),
+        component: () => import('./pages/supplier/supplier_detail/Supplier_Detail.vue'),
         meta: { requiresAuth: true, role: 'admin' }
            },
 
       {
       path: 'stock-invoice/:id/:supplier_id',
       name: 'admin.stock-invoice',
-      component: () => import('./pages/supplier/Order_Item_Stock_Invoice.vue'),
+      component: () => import('./pages/supplier/supplier_detail/Order_Item_Stock_Invoice.vue'),
       meta: { requiresAuth: true, role: 'admin' }
       },
 

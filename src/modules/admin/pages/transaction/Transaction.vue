@@ -93,9 +93,12 @@
           </table>
         </div>
 
-        <div class="p-4 bg-slate-50/50 border-t border-slate-200">
+        <!-- <div class="p-4 bg-slate-50/50 border-t border-slate-200">
           <Pagination :pagination="state.pagination" @page-change="fetchTransactions" />
-        </div>
+        </div> -->
+        <div class="bg-gray-50 border-t border-gray-100 px-4 py-3">
+      <Pagination :pagination="state.pagination" @page-change="fetchTransactions()" />
+    </div>
       </div>
 
       <div v-else class="flex flex-col items-center justify-center py-24 bg-white rounded-3xl border-2 border-dashed border-slate-200">
@@ -212,15 +215,22 @@ const fetchTransactions = async (url = '/transactions') => {
   state.isLoading = true
   try {
     const res = await api.get(url)
+
+    // ✅ data
     state.transactions = res.data.data.data
-    console.log(state.transactions);
-    state.pagination = res.data.pagination
+
+    // ✅ pagination (FULL paginator object)
+    state.pagination = res.data.data
+
+    console.log('transactions pagination', state.pagination)
+
   } catch (e) {
     toast.error('Failed to load transactions')
   } finally {
     state.isLoading = false
   }
 }
+
 
 const fetchAccounts = async () => {
   const res = await api.get('/transactions/accounts')

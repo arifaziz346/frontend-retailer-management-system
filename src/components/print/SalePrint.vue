@@ -86,81 +86,97 @@ const print = (saleData) => {
       : "<tr><td colspan='4' style='text-align:center'>No items</td></tr>";
 
   // Full HTML for receipt
-  const html = `
-    <html>
-    <head>
-      <meta charset="UTF-8">
-      <title>Invoice</title>
-      <style>
-        body { font-family: monospace; margin:0; padding:0; }
-        .receipt { width:80mm; padding:8px; }
-        table { width:100%; font-size:12px; border-collapse:collapse; }
-        td { padding:2px 0; }
-        .line { border-top:1px dashed #000; margin:6px 0; }
-        .right { text-align:right; }
-        h3 { text-align:center; margin:2px 0; }
-        .center { text-align:center; }
-        .logo { max-width:50px; margin: 0 auto 4px; display:block; }
-        @media print { @page { size:auto; margin:3mm; } }
-      </style>
-    </head>
-    <body onload="window.print(); setTimeout(()=>window.close(), 500)">
-      <div class="receipt">
-        ${finalLogo.value ? `<img src="${finalLogo.value}" class="logo"/>` : ""}
-        <h3>${finalShopName.value}</h3>
-        <div class="center">${finalShopAddress.value}</div>
-        <div class="center">${finalShopPhone.value}</div>
-        ${finalShopPhoneTwo.value ? `<div class="center">${finalShopPhoneTwo.value}</div>` : ""}
-        <div class="line"></div>
+const html = `
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Invoice</title>
+  <style>
+    body { font-family: monospace; margin:0; padding:0; }
+    .receipt { width:80mm; padding:8px; }
+    table { width:100%; font-size:14px; border-collapse:collapse; }
+    td { padding:2px 0; }
+    .line { border-top:1px dashed #000; margin:6px 0; }
+    .right { text-align:right; }
+    h3 { text-align:center; margin:2px 0; }
+    .center { text-align:center; }
+    .logo { max-width:150px; margin: 0 auto 4px; display:block; }
+    @media print { @page { size:auto; margin:3mm; } }
+  </style>
+</head>
+<body onload="window.print(); setTimeout(()=>window.close(), 500)">
+  <div class="receipt">
+    ${finalLogo.value ? `<img src="${finalLogo.value}" class="logo"/>` : ""}
+    <h3>${finalShopName.value}</h3>
+    <div class="center">${finalShopAddress.value}</div>
+    <div class="center">Ph-${finalShopPhone.value}</div>
+    ${finalShopPhoneTwo.value ? `<div class="center">Ph-:${finalShopPhoneTwo.value}</div>` : ""}
+    <div class="line"></div>
 
-        <div>ID: ${sale.value.id}</div>
-        <div>Date: ${sale.value.sale_date}</div>
-        <div>Customer: ${sale.value.customer?.name || "-"}</div>
-        <div>Type: <b>${sale.value.credit ? "Credit" : "Cash"}</b></div>
+    <div>ID: ${sale.value.id}</div>
+    <div>Date: ${sale.value.sale_date}</div>
+    <div>Customer: ${sale.value.customer?.name || "-"}</div>
+    <div>Type: <b>${getCreditLabel(sale.value.credit)}</b></div>
 
-        <div class="line"></div>
-        <table>
-          <thead>
-            <tr>
-              <td>Item</td>
-              <td class="right">Qty</td>
-              <td class="right">Price</td>
-              <td class="right">Total</td>
-            </tr>
-          </thead>
-          <tbody>${itemsHtml}</tbody>
-        </table>
+    <div class="line"></div>
+    <table>
+      <thead>
+        <tr>
+          <td>Item</td>
+          <td class="right">Qty</td>
+          <td class="right">Price</td>
+          <td class="right">Total</td>
+        </tr>
+      </thead>
+      <tbody>${itemsHtml}</tbody>
+    </table>
 
-        <div class="line"></div>
-        <table>
-          <tr>
-            <td>Items</td>
-            <td class="right">${sale.value.total_items || 0}</td>
-          </tr>
-          <tr>
-            <td>Discount</td>
-            <td class="right">Rs. ${sale.value.total_discount || 0}</td>
-          </tr>
-          <tr>
-            <td><b>Total</b></td>
-            <td class="right"><b>Rs. ${sale.value.total_amount || 0}</b></td>
-          </tr>
-        </table>
+    <div class="line"></div>
+    <table>
+      <tr>
+        <td>Items</td>
+        <td class="right">${sale.value.total_items || 0}</td>
+      </tr>
+      
+      <tr>
+        <td><b>Total</b></td>
+        <td class="right"><b>Rs. ${sale.value.total_amount || 0}</b></td>
+      </tr>
+    </table>
 
-        <div class="line"></div>
-        ${sale.value.total_arrears ? `<div class="center">Arrears: Rs.${sale.value.total_arrears}</div>` : ""}
-        <div class="center">Thank You!</div>
-      </div>
-    </body>
-    </html>
-  `;
-
+    <div class="line"></div>
+    ${sale.value.total_arrears ? `<div class="center">Arrears: Rs.${sale.value.total_arrears}</div>` : ""}
+    <div class="center">Developed By ATS Chitral</div>
+    
+  </div>
+</body>
+</html>
+`;
+// <tr>
+          //   <td>Discount</td>
+          //   <td class="right">Rs. ${sale.value.total_discount || 0}</td>
+          // </tr>
   // Open in new window and print
   const w = window.open("", "_blank");
   w.document.write(html);
   w.document.close();
 };
 
+
+// Map credit values to readable names
+const creditTypeMap = {
+  null: 'Fast Pay',         // immediate payment, no credit involved
+  0: 'Invoice Only',        // no credit, invoice created with customer name
+  1: 'Credit Sale',         // customer purchases on credit
+  2: 'Advance Hold',        // full payment received in advance
+};
+
+// Function to get label safely
+const getCreditLabel = (credit) => {
+  // handle null explicitly
+  if (credit === null || credit === undefined) return creditTypeMap.null;
+  return creditTypeMap[credit] || 'Unknown';
+};
 // Expose print method
 defineExpose({ print });
 </script>

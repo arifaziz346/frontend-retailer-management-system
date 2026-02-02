@@ -39,8 +39,9 @@ const columns = [
   { label: 'Total Sales', key: 'sale', icon: 'trending-up' },
   { label: 'Profit', key: 'profit', icon: 'dollar-sign' },
   { label: 'Expenses', key: 'expense', icon: 'credit-card' },
-  { label: 'Discounts', key: 'discount', icon: 'percent' },
+  // { label: 'Discounts', key: 'discount', icon: 'percent' },
   { label: 'Credit (Cust)', key: 'credit_customer', icon: 'users' },
+  { label: 'Cash Only', key: 'cash_only_sale', icon: 'dollar-sign' },
   { label: 'Withdrawals', key: 'account_withdraw', icon: 'arrow-up-right' },
   { label: 'Deposits', key: 'account_deposit', icon: 'arrow-down-left' },
   { label: 'Cash In Hand', key: 'cash_in_hand', icon: 'wallet' },
@@ -51,6 +52,8 @@ const fetchReport = async (filters) => {
   try {
     const { data } = await api.get('/reports/all', { params: filters });
     reportData.value = data;
+
+    console.log('print-report',data)
   } catch (error) {
     console.error('Report error:', error);
   } finally {
