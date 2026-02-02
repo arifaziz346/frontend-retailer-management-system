@@ -185,19 +185,37 @@
           </div>
         </div>
         
-        <TypeSelector
-          v-model="form.category_id"
-          :sub_categories="state.categories || []"
-          :error="errors?.category_id"
-          button_name="+ New"
-          label="Category"
-          @click_sub_category="navigateToSubcategory"
-        />
+
+      <div class="space-y-2">
+          <label class="block text-sm font-bold text-slate-700">Select Category</label>
+          <div class="flex gap-2">
+            <Selector
+              id="category"
+              v-model="form.category_id"
+              :options="state.categories.map(u => ({ label: u.category_name, value: u.id }))"
+              placeholder="Select Category"
+              class="flex-1"
+              :error="errors.category_id"
+            />
+            <button @click="navigateToSubcategory" class="p-2 bg-slate-100 rounded-lg hover:bg-slate-200"><i class="pi pi-plus"></i></button>
+          </div>
+        </div>
+
+
+        <!-- <TypeSelector
+  v-model="form.category_id"
+  :sub_categories="state.categories || []"
+  :error="errors?.category_id"
+  button_name="+ New"
+  label="Category"
+  @click_sub_category="navigateToSubcategory"
+/> -->
+
 
         
 
-        <FormInput v-model="form.cost_price" label="Cost Price (Base)" type="number" />
-        <FormInput v-model="form.sale_price" label="Selling Price" type="number" />
+        <FormInput v-model="form.cost_price" :error="errors.cost_price" label="Cost Price (Base)" type="number" />
+        <FormInput v-model="form.sale_price" :error="errors.sale_price" label="Selling Price" type="number" />
       </div>
     </BaseModal>
 
@@ -255,7 +273,7 @@ const state = reactive({
   },
 });
 
-const category_id = ref();
+const category_id = ref('');
 const category_name = ref();
 const isLoading = ref(false);
 const isLoadingSearch = ref(false);
