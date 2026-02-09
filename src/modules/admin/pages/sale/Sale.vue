@@ -225,6 +225,13 @@
 
     <FormInput id="name" label="Name" v-model="form.name" :error="errors.name" />
     <FormInput id="address" label="Address" v-model="form.address" :error="errors.address" />
+    <FormInput 
+  id="nic" 
+  label="NIC (withtout dashes)" 
+  v-model="form.nic" 
+  @input="handleNicInput"
+  :error="errors.nic" 
+/>
     <FormInput id="remark" label="Remarks" v-model="form.remarks" :error="errors.remarks" />
     <FormInput id="sale_date" type="date" label="Date" v-model="form.sale_date" :errors="errors.sale_date" />
     
@@ -270,8 +277,8 @@ const state = reactive({
   saleType: '',
 });
 
-const errors = reactive({ name: '', phone_one: '', address: '', sale_date: '' });
-const form = reactive({ name: '', phone_one: '', address: '', remarks: '', sale_date: '' });
+const errors = reactive({ name: '', phone_one: '', address: '', nic: '', sale_date: '' });
+const form = reactive({ name: '', phone_one: '', address: '', nic: '', remarks: '', sale_date: '' });
 
 // --- CALCULATIONS (Discount/Savings) ---
 const grossTotal = computed(() => {
@@ -464,6 +471,7 @@ const searchCustomerPhoneDebounced = _.debounce(async () => {
   if (!form.phone_one) {
     form.name = '';
     form.address = '';
+    form.nic = '';
     searchStatus.value = '';
     return;
   }
@@ -478,10 +486,12 @@ const searchCustomerPhoneDebounced = _.debounce(async () => {
     if (customers.length > 0) {
       form.name = customers[0].name || '';
       form.address = customers[0].address || '';
+      form.nic = customers[0].nic || '';
       searchStatus.value = 'found';
     } else {
       form.name = '';
       form.address = '';
+      form.nic = '';
       searchStatus.value = 'not-found';
     }
 
@@ -505,6 +515,27 @@ watch(() => form.phone_one, (newVal, oldVal) => {
   searchStatus.value = 'searching';
   searchCustomerPhoneDebounced();
 });
+
+
+
+const handleNicInput = (e) => {
+  // 1. Extract only digits and limit to exactly 13
+  let val = e.target.value.replace(/\D/g, '').substring(0, 13);
+  
+  // 2. Insert dashes at specific positions
+  if (val.length > 5) val = val.slice(0, 5) + "-" + val.slice(5);
+  if (val.length > 13) val = val.slice(0, 13) + "-" + val.slice(13);
+  
+  // 3. Update the form state
+  form.nic = val;
+};
+
+// Helper to make it cleaner
+String.prototype.insert = function (index, string) {
+  if (index > 0) return this.substring(0, index) + string + this.substring(index);
+  return string + this;
+};
+
 
 onMounted(() => {
   if (!form.sale_date) {

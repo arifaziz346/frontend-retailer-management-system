@@ -41,11 +41,12 @@
           <div class="flex items-center gap-3">
             <button
               @click="printInvoice"
-              class="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all shadow-sm"
-              title="Print Invoice"
+              :disabled="isGeneratingPDF"
+              class="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-lg transition-all shadow-sm"
+              title="Download Invoice PDF"
             >
-              <i class="pi pi-print text-sm"></i>
-              <span class="hidden sm:inline">Print</span>
+              <i :class="isGeneratingPDF ? 'pi pi-spin pi-spinner' : 'pi pi-download'" class="text-sm"></i>
+              <span class="hidden sm:inline">{{ isGeneratingPDF ? 'Generating...' : 'Download PDF' }}</span>
             </button>
 
             <button
@@ -427,6 +428,9 @@
         </div>
       </div>
     </BaseModal>
+
+    <!-- Hidden PDF Component -->
+    <SupplierOrderPrint ref="pdfRef" />
   </div>
 </template>
 
@@ -443,11 +447,14 @@ import { round } from '@/utils/helper';
 import BaseModal from '@/components/BaseModal.vue';
 import FormInput from '@/components/admin/FormInput.vue';
 import Button from '@/components/admin/Button.vue';
+import SupplierOrderPrint from '@/components/SupplierOrderPrint.vue';
 
 const route = useRoute();
 const router = useRouter();
 const invoiceRef = ref(null);
 const dropdownRef = ref(null);
+const pdfRef = ref(null);
+const isGeneratingPDF = ref(false);
 const { printElement } = usePrint();
 
 // State
@@ -681,8 +688,55 @@ const resetForm = () => {
   showModal.value = false;
 };
 
+// PDF Download Function
+const downloadPDF = async () => {
+  if (!pdfRef.value) {
+    toast.error('PDF component not loaded');
+    return;
+  }
+
+  if (!state.supplier_order_items || state.supplier_order_items.length === 0) {
+    toast.error('No items to generate PDF');
+    return;
+  }
+
+  try {
+    isGeneratingPDF.value = true;
+
+    // Prepare the order data with correct structure
+    const orderData = {
+      id: invoiceOrderId.value,
+      order_date: invoiceDate.value,
+      status: 'Completed',
+      supplier: {
+        name: state.supplier?.name || 'N/A',
+        phone: state.supplier?.contact_person || 'N/A'
+      },
+      items: state.supplier_order_items.map((item) => ({
+        id: item.id,
+        name: item.name || 'N/A',
+        quantity: item.quantity || 0,
+        cost_price: item.cost_price || 0,
+        sale_price: item.sale_price || 0
+      })),
+      transport_cost: invoiceData.value.transport_cost || 0,
+      labour_cost: invoiceData.value.labour_cost || 0
+    };
+
+    // Call the downloadPDF method from the component
+    await pdfRef.value.downloadPDF(orderData);
+    
+    toast.success('PDF generated successfully!');
+  } catch (error) {
+    console.error('PDF generation error:', error);
+    toast.error('Failed to generate PDF');
+  } finally {
+    isGeneratingPDF.value = false;
+  }
+};
+
 const printInvoice = () => {
-  printElement(invoiceRef);
+  downloadPDF();
 };
 
 // Lifecycle
