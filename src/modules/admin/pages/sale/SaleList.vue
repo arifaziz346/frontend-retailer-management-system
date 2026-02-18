@@ -49,7 +49,7 @@
               <th class="px-6 py-4">Invoice #</th>
               <th class="px-6 py-4">Date & Customer</th>
               <th class="px-6 py-4">Payment Type</th>
-              <th class="px-6 py-4 text-center">Items</th>
+              <!-- <th class="px-6 py-4 text-center">Items</th> -->
               <th class="px-6 py-4">Financials</th>
               <th class="px-6 py-4 text-center">Actions</th>
             </tr>
@@ -122,11 +122,11 @@
                 </span>
               </td>
 
-              <td class="px-6 py-4 text-center">
+              <!-- <td class="px-6 py-4 text-center">
                 <span class="bg-gray-100 text-gray-700 px-2 py-0.5 rounded font-bold text-xs">
                   {{ sale.total_items || 0 }}
                 </span>
-              </td>
+              </td> -->
 
               <td class="px-6 py-4 text-sm">
                 <div class="flex flex-col">

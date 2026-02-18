@@ -93,6 +93,7 @@
           </div>
         </div>
 
+        <!-- Cart Items -->
         <div class="flex-1 overflow-y-auto custom-scrollbar bg-white">
           <div v-if="refItems.length === 0" class="flex flex-col items-center justify-center h-full text-gray-300 p-6 text-center">
             <i class="pi pi-shopping-cart text-4xl mb-2"></i>
@@ -118,8 +119,7 @@
                   :class="[
                     (!item.sale_price || item.sale_price <= 0) 
                     ? 'bg-red-50 border-red-500 ring-1 ring-red-500' 
-                    : 'bg-blue-50/50 border-blue-100'
-                  ]"
+                    : 'bg-blue-50/50 border-blue-100']"
                 >
                   <div class="flex items-center">
                     <span class="text-[9px] font-bold mr-1" :class="(!item.sale_price || item.sale_price <= 0) ? 'text-red-500' : 'text-blue-400'">Rs.</span>
@@ -131,13 +131,13 @@
                   </span>
                 </div>
 
-                <div class="flex items-center bg-white border border-gray-200 rounded-md h-7 overflow-hidden shadow-sm">
-                  <button @click.prevent="decreaseItemQty(item.id)" class="w-6 h-full bg-gray-50 hover:bg-gray-100 text-gray-500 border-r border-gray-200 text-xs">-</button>
-                  <input type="number" :value="item.quantity" @input="inputQty(item.id, $event.target.value)"
-                    class="text-center bg-white border-none text-[11px] font-black text-gray-800 p-0 focus:ring-0"
-                    :style="{ width: (item.quantity.toString().length + 1.2) + 'ch', minWidth: '28px' }" />
-                  <button @click.prevent="increaseItemQty(item.id)" class="w-6 h-full bg-gray-50 hover:bg-gray-100 text-gray-500 border-l border-gray-200 text-xs">+</button>
-                </div>
+               <div class="flex items-center bg-white border border-gray-200 rounded-md h-7 overflow-hidden shadow-sm">
+  <button @click.prevent="decreaseItemQty(item.id)" class="w-6 h-full bg-gray-50 hover:bg-gray-100 text-gray-500 border-r border-gray-200 text-xs">-</button>
+  <input type="number" :value="item.quantity" @input="inputQty(item.id, $event.target.value)"
+    class="text-center bg-white border-none text-[11px] font-black text-gray-800 p-0 focus:ring-0"
+    :style="{ width: (item.quantity.toString().length + 2.5) + 'ch', minWidth: '60px' }" />
+  <button @click.prevent="increaseItemQty(item.id)" class="w-6 h-full bg-gray-50 hover:bg-gray-100 text-gray-500 border-l border-gray-200 text-xs">+</button>
+</div>
 
                 <div class="text-right min-w-[60px]">
                   <p class="text-[11px] font-black text-gray-900">Rs. {{ (item.quantity * (item.sale_price || 0)) }}</p>
