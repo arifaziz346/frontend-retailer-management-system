@@ -200,8 +200,13 @@ export default [
         name:'admin.permissions-admin',
         component: ()=> import('./pages/admin/Permissions_Admin.vue')
         ,meta: { requiresAuth: true, role: 'admin' } // ✅ added
-      }
-      ,
+      },
+      {
+        path:'biography',
+        name:'admin.biography',
+        component: ()=> import('./pages/biography/Biography.vue')
+        ,meta: { requiresAuth: true, role: 'admin' } // ✅ added
+      },
       {
         path:'about',
         name:'admin.about',

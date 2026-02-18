@@ -148,6 +148,7 @@ const menu = ref([
   },
 
   { name: 'Customer', route: '/admin/customer' },
+  { name: 'Biography', route: '/admin/biography' },
   { name: 'Admins', route: '/admin/admins' },
   { name: 'About', route: '/admin/about' },
 ])
