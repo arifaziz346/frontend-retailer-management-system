@@ -5,14 +5,16 @@ import { VueSpinnerDots } from 'vue3-spinners';
 
 // --- STATE MANAGEMENT ---
 const isCreating = ref(false);
+const isEditing = ref(false); // Track if we are in Edit mode
 const isLoading = ref(false);
 const isSaving = ref(false);
 const selectedYearIndex = ref(0);
 const yearlyRecords = ref([]);
-const errors = ref({}); // Holds inline validation errors from Laravel
+const errors = ref({});
 
-// Form for New Year Entry
+// Form for Entry (Used for both New and Edit)
 const form = reactive({
+    id: null,
     year: new Date().getFullYear(),
     self_investment: 0,
     receivable: 0,
@@ -41,17 +43,29 @@ const fetchRecords = async () => {
 
 const saveYearlyData = async () => {
     isSaving.value = true;
-    errors.value = {}; // Clear previous errors
+    errors.value = {}; 
     
     try {
-        const { data } = await api.post('/biography/summaries', form);
-        yearlyRecords.value.unshift(data.data); // Add new record to top of list
-        isCreating.value = false;
-        selectedYearIndex.value = 0;
-        resetForm();
+        // Determine URL and Method based on mode
+        const url = isEditing.value ? `/biography/summaries/${form.id}` : '/biography/summaries';
+        const method = isEditing.value ? 'put' : 'post';
+        
+        const { data } = await api[method](url, form);
+        
+        if (isEditing.value) {
+            // Update the record in the local array
+            const index = yearlyRecords.value.findIndex(r => r.id === form.id);
+            if (index !== -1) yearlyRecords.value[index] = data.data;
+        } else {
+            // Add new record to top of list
+            yearlyRecords.value.unshift(data.data);
+            selectedYearIndex.value = 0;
+        }
+
+        cancelAction(); // Reset state and go back to report view
     } catch (err) {
         if (err.response && err.response.status === 422) {
-            errors.value = err.response.data.errors; // Capture Laravel validation errors
+            errors.value = err.response.data.errors;
         } else {
             alert("An unexpected error occurred.");
         }
@@ -60,8 +74,39 @@ const saveYearlyData = async () => {
     }
 };
 
+// --- EDIT LOGIC ---
+const editCurrentYear = () => {
+    const data = activeData.value;
+    if (!data) return;
+
+    // Load active data into form
+    Object.assign(form, {
+        id: data.id,
+        year: data.year,
+        self_investment: data.self_investment,
+        receivable: data.receivable,
+        payable: data.payable,
+        assets: data.assets,
+        liabilities: data.liabilities,
+        // Clone arrays to prevent direct mutation before saving
+        business_withdrawals: JSON.parse(JSON.stringify(data.business_withdrawals || [])),
+        shareholder_injections: JSON.parse(JSON.stringify(data.shareholder_injections || [])),
+        shareholder_withdrawals: JSON.parse(JSON.stringify(data.shareholder_withdrawals || []))
+    });
+
+    isEditing.value = true;
+    isCreating.value = true;
+};
+
+const cancelAction = () => {
+    isCreating.value = false;
+    isEditing.value = false;
+    resetForm();
+};
+
 const resetForm = () => {
     Object.assign(form, {
+        id: null,
         year: new Date().getFullYear(),
         self_investment: 0,
         receivable: 0,
@@ -96,24 +141,33 @@ onMounted(fetchRecords);
     <div class="p-6 bg-gray-50 min-h-screen font-sans">
         <div class="max-w-4xl mx-auto">
             
-            <div class="flex justify-between items-center  bg-white p-4 rounded shadow-sm border">
+            <div class="flex justify-between items-center bg-white p-4 rounded shadow-sm border">
                 <div>
                     <h1 class="text-xl font-bold text-gray-800">Chitral Steel Center</h1>
                     <p class="text-xs text-blue-600 font-bold uppercase tracking-widest">Financial Records</p>
                 </div>
                 <div class="flex gap-3 items-center">
                     <VueSpinnerDots v-if="isLoading" size="20" color="#2563eb" />
-                    <select v-else v-model="selectedYearIndex" class="border p-2 rounded text-sm bg-gray-50 font-bold">
-                        <option v-for="(record, index) in yearlyRecords" :key="record.id" :value="index">Year {{ record.year }}</option>
-                    </select>
-                    <button @click="isCreating = !isCreating" class="bg-black text-white px-5 py-2 rounded text-sm font-bold hover:bg-gray-800 transition">
-                        {{ isCreating ? '← Back' : '+ Create New Year' }}
-                    </button>
+                    <template v-else>
+                        <select v-if="!isCreating" v-model="selectedYearIndex" class="border p-2 rounded text-sm bg-gray-50 font-bold">
+                            <option v-for="(record, index) in yearlyRecords" :key="record.id" :value="index">Year {{ record.year }}</option>
+                        </select>
+                        
+                        <button v-if="activeData && !isCreating" @click="editCurrentYear" class="bg-gray-200 text-gray-700 px-4 py-2 rounded text-sm font-bold hover:bg-gray-300 transition">
+                            Edit Year
+                        </button>
+
+                        <button @click="isCreating ? cancelAction() : isCreating = true" class="bg-black text-white px-5 py-2 rounded text-sm font-bold hover:bg-gray-800 transition">
+                            {{ isCreating ? '← Back' : '+ Create New Year' }}
+                        </button>
+                    </template>
                 </div>
             </div>
 
-            <div v-if="isCreating" class="bg-white p-8 rounded-lg shadow-xl border-t-4 border-blue-600 space-y-8 animate-in fade-in duration-300">
-                <h2 class="text-xl font-bold border-b pb-2">New Entry for Year {{ form.year }}</h2>
+            <div v-if="isCreating" class="bg-white p-8 rounded-lg shadow-xl border-t-4 border-blue-600 space-y-8 animate-in fade-in duration-300 mt-4">
+                <h2 class="text-xl font-bold border-b pb-2">
+                    {{ isEditing ? 'Edit Financial Year ' + form.year : 'New Entry for Year ' + form.year }}
+                </h2>
                 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="space-y-1">
@@ -131,6 +185,11 @@ onMounted(fetchRecords);
                         <input v-model="form.receivable" type="number" class="w-full border-2 p-2 rounded" :class="{'border-red-400': errors.receivable}">
                         <p v-if="errors.receivable" class="text-red-500 text-[10px] font-bold">{{ errors.receivable[0] }}</p>
                     </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-black uppercase text-gray-500">Payables</label>
+                        <input v-model="form.payable" type="number" class="w-full border-2 p-2 rounded" :class="{'border-red-400': errors.payable}">
+                        <p v-if="errors.payable" class="text-red-500 text-[10px] font-bold">{{ errors.payable[0] }}</p>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 gap-8">
@@ -142,7 +201,6 @@ onMounted(fetchRecords);
                                 <input v-model="item.amount" type="number" placeholder="Amount" class="w-32 border p-2 rounded text-sm">
                                 <button @click="removeItem(form.business_withdrawals, i)" class="text-red-500 px-2 font-bold">×</button>
                             </div>
-                            <p v-if="errors[`business_withdrawals.${i}.reason`]" class="text-red-500 text-[10px]">{{ errors[`business_withdrawals.${i}.reason`][0] }}</p>
                         </div>
                     </div>
 
@@ -154,7 +212,6 @@ onMounted(fetchRecords);
                                 <input v-model="item.amount" type="number" placeholder="Amount" class="w-32 border p-2 rounded text-sm">
                                 <button @click="removeItem(form.shareholder_injections, i)" class="text-red-500 px-2">×</button>
                             </div>
-                            <p v-if="errors[`shareholder_injections.${i}.name`]" class="text-red-500 text-[10px]">{{ errors[`shareholder_injections.${i}.name`][0] }}</p>
                         </div>
                     </div>
 
@@ -166,7 +223,6 @@ onMounted(fetchRecords);
                                 <input v-model="item.amount" type="number" placeholder="Amount" class="w-32 border p-2 rounded text-sm">
                                 <button @click="removeItem(form.shareholder_withdrawals, i)" class="text-red-500 px-2">×</button>
                             </div>
-                            <p v-if="errors[`shareholder_withdrawals.${i}.name`]" class="text-red-500 text-[10px]">{{ errors[`shareholder_withdrawals.${i}.name`][0] }}</p>
                         </div>
                     </div>
                 </div>
@@ -182,20 +238,15 @@ onMounted(fetchRecords);
                     </div>
                 </div>
 
-                <button 
-  @click="saveYearlyData" 
-  :disabled="isSaving" 
-  class="w-full bg-blue-600 text-white py-4 rounded-lg font-black uppercase tracking-widest hover:bg-blue-700 shadow-lg flex justify-center items-center gap-3"
->
-    <span v-if="!isSaving" class="text-xl">
-        Save Financial Year Report
-    </span>
-    
-    <VueSpinnerDots v-else size="20" color="#ffffff" />
-</button>
+                <button @click="saveYearlyData" :disabled="isSaving" class="w-full bg-blue-600 text-white py-4 rounded-lg font-black uppercase tracking-widest hover:bg-blue-700 shadow-lg flex justify-center items-center gap-3">
+                    <span v-if="!isSaving" class="text-xl">
+                        {{ isEditing ? 'Update Report' : 'Save Financial Year Report' }}
+                    </span>
+                    <VueSpinnerDots v-else size="20" color="#ffffff" />
+                </button>
             </div>
 
-            <div v-else-if="activeData" class="bg-white p-12 shadow-2xl border-x border-b animate-in zoom-in-95 duration-500">
+            <div v-else-if="activeData" class="bg-white p-12 shadow-2xl border-x border-b animate-in zoom-in-95 duration-500 mt-4">
                 <div class="text-center mb-12">
                     <h2 class="text-3xl font-black uppercase tracking-tighter text-gray-900">Biography of Chitral Steel Center</h2>
                     <p class="text-sm font-bold text-gray-500 mt-2">Established (Computerized) January 01, 2026</p>
