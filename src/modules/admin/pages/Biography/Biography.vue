@@ -5,14 +5,29 @@ import { VueSpinnerDots } from 'vue3-spinners';
 
 // --- STATE MANAGEMENT ---
 const isCreating = ref(false);
-const isEditing = ref(false); // Track if we are in Edit mode
+const isEditing = ref(false);
 const isLoading = ref(false);
 const isSaving = ref(false);
+const isDeleting = ref(false);
 const selectedYearIndex = ref(0);
 const yearlyRecords = ref([]);
 const errors = ref({});
 
-// Form for Entry (Used for both New and Edit)
+// --- TOAST NOTIFICATION STATE ---
+const toast = reactive({
+    show: false,
+    message: '',
+    type: 'success' // 'success' | 'error'
+});
+
+const triggerToast = (msg, type = 'success') => {
+    toast.message = msg;
+    toast.type = type;
+    toast.show = true;
+    setTimeout(() => { toast.show = false; }, 3000);
+};
+
+// Form for Entry
 const form = reactive({
     id: null,
     year: new Date().getFullYear(),
@@ -46,31 +61,50 @@ const saveYearlyData = async () => {
     errors.value = {}; 
     
     try {
-        // Determine URL and Method based on mode
         const url = isEditing.value ? `/biography/summaries/${form.id}` : '/biography/summaries';
         const method = isEditing.value ? 'put' : 'post';
         
         const { data } = await api[method](url, form);
         
         if (isEditing.value) {
-            // Update the record in the local array
             const index = yearlyRecords.value.findIndex(r => r.id === form.id);
             if (index !== -1) yearlyRecords.value[index] = data.data;
+            triggerToast("Record updated successfully!");
         } else {
-            // Add new record to top of list
             yearlyRecords.value.unshift(data.data);
             selectedYearIndex.value = 0;
+            triggerToast("New record added successfully!");
         }
 
-        cancelAction(); // Reset state and go back to report view
+        cancelAction(); 
     } catch (err) {
         if (err.response && err.response.status === 422) {
             errors.value = err.response.data.errors;
+            triggerToast("Validation failed.", "error");
         } else {
-            alert("An unexpected error occurred.");
+            triggerToast("An unexpected error occurred.", "error");
         }
     } finally {
         isSaving.value = false;
+    }
+};
+
+const deleteRecord = async () => {
+    const data = activeData.value;
+    if (!data) return;
+
+    if (!confirm(`Permanently delete records for Year ${data.year}?`)) return;
+
+    isDeleting.value = true;
+    try {
+        await api.delete(`/biography/summaries/${data.id}`);
+        yearlyRecords.value.splice(selectedYearIndex.value, 1);
+        if (yearlyRecords.value.length > 0) selectedYearIndex.value = 0;
+        triggerToast("Record deleted successfully!");
+    } catch (err) {
+        triggerToast("Failed to delete record.", "error");
+    } finally {
+        isDeleting.value = false;
     }
 };
 
@@ -79,7 +113,6 @@ const editCurrentYear = () => {
     const data = activeData.value;
     if (!data) return;
 
-    // Load active data into form
     Object.assign(form, {
         id: data.id,
         year: data.year,
@@ -88,7 +121,6 @@ const editCurrentYear = () => {
         payable: data.payable,
         assets: data.assets,
         liabilities: data.liabilities,
-        // Clone arrays to prevent direct mutation before saving
         business_withdrawals: JSON.parse(JSON.stringify(data.business_withdrawals || [])),
         shareholder_injections: JSON.parse(JSON.stringify(data.shareholder_injections || [])),
         shareholder_withdrawals: JSON.parse(JSON.stringify(data.shareholder_withdrawals || []))
@@ -119,13 +151,11 @@ const resetForm = () => {
     });
 };
 
-// --- DYNAMIC INPUT METHODS ---
 const addBusinessWithdrawal = () => form.business_withdrawals.push({ reason: '', amount: 0 });
 const addShareholderInjection = () => form.shareholder_injections.push({ name: '', amount: 0 });
 const addShareholderWithdrawal = () => form.shareholder_withdrawals.push({ name: '', amount: 0 });
 const removeItem = (list, index) => list.splice(index, 1);
 
-// --- COMPUTED ---
 const activeData = computed(() => yearlyRecords.value[selectedYearIndex.value] || null);
 const netInvestment = computed(() => {
     if (!activeData.value) return 0;
@@ -138,21 +168,31 @@ onMounted(fetchRecords);
 </script>
 
 <template>
-    <div class="p-6 bg-gray-50 min-h-screen font-sans">
+    <div class="p-6 bg-gray-50 min-h-screen font-sans relative">
+        
+        <Transition enter-active-class="duration-300 ease-out" enter-from-class="transform translate-y-[-20px] opacity-0" enter-to-class="transform translate-y-0 opacity-100" leave-active-class="duration-200 ease-in" leave-from-class="opacity-100" leave-to-class="opacity-0">
+            <div v-if="toast.show" class="fixed top-6 right-6 z-[100] px-6 py-3 rounded-lg shadow-2xl font-bold text-white transition-all" :class="toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'">
+                {{ toast.message }}
+            </div>
+        </Transition>
+
         <div class="max-w-4xl mx-auto">
-            
             <div class="flex justify-between items-center bg-white p-4 rounded shadow-sm border">
                 <div>
                     <h1 class="text-xl font-bold text-gray-800">Chitral Steel Center</h1>
                     <p class="text-xs text-blue-600 font-bold uppercase tracking-widest">Financial Records</p>
                 </div>
                 <div class="flex gap-3 items-center">
-                    <VueSpinnerDots v-if="isLoading" size="20" color="#2563eb" />
+                    <VueSpinnerDots v-if="isLoading || isDeleting" size="20" color="#2563eb" />
                     <template v-else>
                         <select v-if="!isCreating" v-model="selectedYearIndex" class="border p-2 rounded text-sm bg-gray-50 font-bold">
                             <option v-for="(record, index) in yearlyRecords" :key="record.id" :value="index">Year {{ record.year }}</option>
                         </select>
                         
+                        <button v-if="activeData && !isCreating" @click="deleteRecord" class="text-red-600 px-3 py-2 rounded text-sm font-bold hover:bg-red-50 transition border border-red-200">
+                            Delete
+                        </button>
+
                         <button v-if="activeData && !isCreating" @click="editCurrentYear" class="bg-gray-200 text-gray-700 px-4 py-2 rounded text-sm font-bold hover:bg-gray-300 transition">
                             Edit Year
                         </button>

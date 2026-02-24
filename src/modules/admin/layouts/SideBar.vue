@@ -99,8 +99,8 @@ const menu = ref([
     open:false,
     children:[
       { name: 'Item', route: '/admin/item' },
-      { name: 'Category', route: '/admin/category' },
-      { name: 'Units', route: '/admin/unit' }
+      // { name: 'Category', route: '/admin/category' },
+      // { name: 'Units', route: '/admin/unit' }
     ]
 
   },
@@ -110,7 +110,7 @@ const menu = ref([
     open: false,
     children: [
       { name: 'Sale', route: '/admin/sale' },
-      { name: 'Sales-list', route: '/admin/sale-list' },
+      { name: 'Daily-Sales-list', route: '/admin/sale-list' },
       // { name: 'Report', route: '/admin/report-sale-items' },
     ]
   },
@@ -124,7 +124,7 @@ const menu = ref([
       { name: 'All', route: '/admin/report-all'},
     ]
   },
-  { name: 'Credit', route: '/admin/credit-customers' },
+  { name: 'Khata', route: '/admin/credit-customers' },
 
   // <!------------Expense--------->
   {
