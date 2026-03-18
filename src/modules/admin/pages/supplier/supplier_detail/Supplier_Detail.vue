@@ -302,6 +302,8 @@ const loadSupplierData = async () => {
     financials.amountPaid = paymentsRes.data.data.paid_total_supplier || 0;
     financials.totalPurchased = orderItemsRes.data.data.total_purchased_amount || 0;
     financials.totalItems = orderItemsRes.data.data.total_item_quanity || 0;
+    // hander orderItemsRes incase of null empty or any error
+    
 
     // Update invoice stats
     const orders = ordersRes.data.data || [];
@@ -318,7 +320,7 @@ const loadSupplierData = async () => {
   } catch (error) {
     console.error('Error loading supplier data:', error);
     toast.error('Failed to load supplier details');
-    router.push('/admin/Supplier');
+    // router.push('/admin/Supplier');
   } finally {
     isLoading.value = false;
   }
