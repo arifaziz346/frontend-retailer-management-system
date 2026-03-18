@@ -14,12 +14,13 @@
               <span class="font-medium">Suppliers</span>
             </router-link>
             <i class="pi pi-chevron-right text-gray-400 text-xs"></i>
-            <router-link
-              :to="`/admin/Supplier/${supplierId}`"
-              class="text-gray-600 hover:text-blue-600 transition-colors"
-            >
-              <span class="font-medium">Supplier Details</span>
-            </router-link>
+            <button
+  @click="$router.back()"
+  class="text-gray-600 hover:text-blue-600 transition-colors"
+>
+  <span class="font-medium">Supplier Details</span>
+</button>
+            
             <i class="pi pi-chevron-right text-gray-400 text-xs"></i>
             <span class="text-gray-900 font-semibold">Stock Invoices</span>
           </nav>
