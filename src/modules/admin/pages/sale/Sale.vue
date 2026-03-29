@@ -133,14 +133,14 @@
 
                <div class="flex items-center bg-white border border-gray-200 rounded-md h-7 overflow-hidden shadow-sm">
   <button @click.prevent="decreaseItemQty(item.id)" class="w-6 h-full bg-gray-50 hover:bg-gray-100 text-gray-500 border-r border-gray-200 text-xs">-</button>
-  <input type="number" :value="item.quantity" @input="inputQty(item.id, $event.target.value)"
+  <input type="number" step="0.001" :value="item.quantity" @input="inputQty(item.id, $event.target.value)"
     class="text-center bg-white border-none text-[11px] font-black text-gray-800 p-0 focus:ring-0"
     :style="{ width: (item.quantity.toString().length + 2.5) + 'ch', minWidth: '60px' }" />
   <button @click.prevent="increaseItemQty(item.id)" class="w-6 h-full bg-gray-50 hover:bg-gray-100 text-gray-500 border-l border-gray-200 text-xs">+</button>
 </div>
 
                 <div class="text-right min-w-[60px]">
-                  <p class="text-[11px] font-black text-gray-900">Rs. {{ (item.quantity * (item.sale_price || 0)) }}</p>
+                  <p class="text-[11px] font-black text-gray-900">Rs. {{ (item.quantity * (item.sale_price || 0)).toFixed(2) }}</p>
                 </div>
               </div>
             </div>
@@ -283,16 +283,18 @@ const form = reactive({ name: '', phone_one: '', address: '', nic: '', remarks: 
 // --- CALCULATIONS (Discount/Savings) ---
 const grossTotal = computed(() => {
   // Use the original locked price for gross total
-  return refItems.value.reduce((total, item) => total + (item.base_unit_price * item.quantity), 0);
+  const total = refItems.value.reduce((total, item) => total + (item.base_unit_price * item.quantity), 0);
+  return parseFloat(total.toFixed(2)); // Round to 2 decimal places for currency
 });
 
 const totalPrice = computed(() => {
-  return refItems.value.reduce((total, item) => total + ((item.sale_price || 0) * item.quantity), 0);
+  const total = refItems.value.reduce((total, item) => total + ((item.sale_price || 0) * item.quantity), 0);
+  return parseFloat(total.toFixed(2)); // Round to 2 decimal places for currency
 });
 
 const totalDiscount = computed(() => {
   const diff = grossTotal.value - totalPrice.value;
-  return diff > 0 ? diff : 0; // Only show discount if it's a saving
+  return diff > 0 ? parseFloat(diff.toFixed(2)) : 0; // Only show discount if it's a saving
 });
 
 // --- API ACTIONS ---
@@ -389,18 +391,24 @@ const startScanner = () => {
 const removeItem = (id) => refItems.value = refItems.value.filter(item => item.id !== id);
 const increaseItemQty = (id) => {
   const item = refItems.value.find(i => i.id === id);
-  if (item && item.quantity < item.quantity_in_stock) item.quantity++;
+  if (item && item.quantity < item.quantity_in_stock) {
+    // Increment by 0.1 for fractional quantities, or by 1 for whole quantities
+    item.quantity = parseFloat((item.quantity + 0.1).toFixed(3));
+  }
   else toast.error('Max stock reached');
 };
 const decreaseItemQty = (id) => {
   const item = refItems.value.find(i => i.id === id);
-  if (item && item.quantity > 1) item.quantity--;
+  if (item && item.quantity > 0.1) {
+    // Decrement by 0.1 for fractional quantities, ensuring minimum of 0.001
+    item.quantity = parseFloat((item.quantity - 0.1).toFixed(3));
+  }
 };
 const inputQty = (id, quantity) => {
   const item = refItems.value.find(i => i.id === id);
   if (!item) return;
-  const qty = parseInt(quantity);
-  item.quantity = (isNaN(qty) || qty < 1) ? 1 : (qty > item.quantity_in_stock ? item.quantity_in_stock : qty);
+  const qty = parseFloat(quantity); // Changed from parseInt to parseFloat to support decimals
+  item.quantity = (isNaN(qty) || qty < 0.001) ? 0.001 : (qty > item.quantity_in_stock ? item.quantity_in_stock : parseFloat(qty.toFixed(3)));
 };
 
 const handleSearch = (query) => { searchText.value = query; fetchItems(); };

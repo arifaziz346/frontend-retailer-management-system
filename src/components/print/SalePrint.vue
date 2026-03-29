@@ -146,7 +146,7 @@ const html = `
 
     <div class="line"></div>
     ${sale.value.total_arrears ? `<div class="center">Arrears: Rs.${sale.value.total_arrears}</div>` : ""}
-    <div class="center">Developed By ATS Chitral</div>
+    <div class="center">Developed By CTS Chitral</div>
     
   </div>
 </body>

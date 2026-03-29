@@ -132,9 +132,9 @@
                             <td class="px-3 py-3 text-center font-mono font-bold">{{ item.remaining_to_deliver }}</td>
                             <td class="px-3 py-3">
                                 <div class="flex items-center justify-center gap-2">
-                                    <button @click="updateQty(index, -1)" class="w-7 h-7 rounded bg-gray-100">-</button>
-                                    <input type="number" v-model.number="item.deliver_qty" @input="checkLimit(index)" class="w-12 text-center font-bold outline-none border-b border-gray-200" />
-                                    <button @click="updateQty(index, 1)" class="w-7 h-7 rounded bg-blue-100 text-blue-600">+</button>
+                                    <button @click="updateQty(index, -0.1)" class="w-7 h-7 rounded bg-gray-100">-</button>
+                                    <input type="number" step="0.001" v-model.number="item.deliver_qty" @input="checkLimit(index)" class="w-12 text-center font-bold outline-none border-b border-gray-200" />
+                                    <button @click="updateQty(index, 0.1)" class="w-7 h-7 rounded bg-blue-100 text-blue-600">+</button>
                                 </div>
                             </td>
                         </tr>
@@ -271,7 +271,7 @@ const openDeliverModal = async () => {
 
 const updateQty = (i, d) => {
   const item = deliveryItems.value[i]
-  const val = item.deliver_qty + d
+  const val = parseFloat((item.deliver_qty + d).toFixed(3)) // Support decimal increments
   if (val >= 0 && val <= item.remaining_to_deliver) item.deliver_qty = val
 }
 
