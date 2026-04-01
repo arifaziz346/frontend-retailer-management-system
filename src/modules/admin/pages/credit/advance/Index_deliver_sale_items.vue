@@ -210,7 +210,7 @@ const printFullSummaryReport = () => {
       // We can add a custom property if your SalePrint component supports it
       summary_text: `Remaining: ${i.remaining_to_deliver}`
     })),
-    total_amount: 0,
+    total_amount: saleObject.value.total_amount,
     note: "COMPLETE FULFILLMENT SUMMARY REPORT"
   };
   printRef.value.print(summaryData);

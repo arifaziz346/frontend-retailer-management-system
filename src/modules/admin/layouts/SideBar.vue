@@ -110,7 +110,7 @@ const menu = ref([
     open: false,
     children: [
       { name: 'Sale', route: '/admin/sale' },
-      { name: 'Daily-Sales-list', route: '/admin/sale-list' },
+      { name: 'Sales-list', route: '/admin/sale-list' },
       // { name: 'Report', route: '/admin/report-sale-items' },
     ]
   },
