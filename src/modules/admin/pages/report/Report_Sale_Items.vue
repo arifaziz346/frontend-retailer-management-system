@@ -94,7 +94,6 @@
               <th class="py-4 px-6 text-[11px] font-black text-gray-400 uppercase tracking-wider">Item Details</th>
               <th class="py-4 px-6 text-[11px] font-black text-gray-400 uppercase tracking-wider text-center">Qty Sold</th>
               <th class="py-4 px-6 text-[11px] font-black text-gray-400 uppercase tracking-wider">Pricing</th>
-              <th class="py-4 px-6 text-[11px] font-black text-gray-400 uppercase tracking-wider">Net Revenue</th>
               <th class="py-4 px-6 text-[11px] font-black text-gray-400 uppercase tracking-wider text-right">Last Sale</th>
             </tr>
           </thead>
@@ -116,13 +115,7 @@
               <td class="py-4 px-6">
                 <div class="flex flex-col">
                   <span class="text-xs text-gray-500 italic">Gross: Rs. {{ item.total_price }}</span>
-                  <span class="text-[11px] text-red-500 font-medium">Disc: -Rs. {{ item.discount || 0 }}</span>
                 </div>
-              </td>
-              <td class="py-4 px-6">
-                <span class="text-sm font-black text-green-600">
-                  Rs. {{ (item.total_price - item.discount) }}
-                </span>
               </td>
               <td class="py-4 px-6 text-right">
                 <span class="text-xs font-semibold text-gray-400">

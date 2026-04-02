@@ -151,6 +151,7 @@ const menu = ref([
   { name: 'Biography', route: '/admin/biography' },
   { name: 'Admins', route: '/admin/admins' },
   { name: 'About', route: '/admin/about' },
+  { name: 'Backup', route: '/backup/backup' },
 ])
 
 /* ---------------- METHODS ---------------- */

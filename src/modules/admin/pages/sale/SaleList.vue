@@ -130,7 +130,7 @@
 
               <td class="px-6 py-4 text-sm">
                 <div class="flex flex-col">
-                  <span class="text-gray-900 font-black">Rs. {{ sale.total_amount || 0 }}</span>
+                  <span class="text-gray-900 font-black">Rs. {{ (parseFloat(sale.total_amount) || 0).toFixed(2) }}</span>
                   <!-- <span v-if="sale.total_discount > 0" class="text-[10px] text-orange-500 font-medium">
                     Disc: Rs. {{ sale.total_discount }}
                   </span> -->
@@ -139,6 +139,12 @@
 
               <td class="px-6 py-4">
                 <div class="flex items-center justify-center gap-2">
+                  <button @click="openViewModal(sale)" 
+                    class="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-green-600 text-green-600 hover:bg-green-600 hover:text-white rounded-lg text-xs font-bold transition-all"
+                    title="View invoice details">
+                    <i class="pi pi-eye"></i> View
+                  </button>
+
                   <button @click="printSale(sale.id)" 
                     class="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg text-xs font-bold transition-all">
                     <i class="pi pi-print"></i> Print
@@ -203,6 +209,81 @@
     </BaseModal>
 
     <SalePrint ref="printRef"/>
+
+    <!-- Invoice View Modal -->
+    <div v-if="showViewModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between">
+          <h2 class="text-lg font-bold text-gray-900">Invoice Details</h2>
+          <button @click="showViewModal = false" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+
+        <div class="p-6 space-y-6">
+          <div v-if="selectedSale" class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+            <div class="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Invoice ID</p>
+                <h4 class="text-sm font-bold text-gray-800">#{{ selectedSale.id }}</h4>
+              </div>
+              <div>
+                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Date</p>
+                <h4 class="text-sm font-bold text-gray-800">{{ selectedSale.sale_date || '-' }}</h4>
+              </div>
+              <div>
+                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Customer</p>
+                <h4 class="text-sm font-bold text-gray-800">{{ selectedSale.customer?.name || 'Walk-in Customer' }}</h4>
+              </div>
+              <div>
+                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Phone</p>
+                <h4 class="text-sm font-bold text-gray-800">{{ selectedSale.customer?.phone_one || 'N/A' }}</h4>
+              </div>
+            </div>
+          </div>
+
+          <div class="overflow-hidden border border-gray-100 rounded-lg">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-gray-800 text-white font-bold uppercase">
+                <tr>
+                  <th class="px-3 py-3">Item Name</th>
+                  <th class="px-3 py-3 text-center">Quantity</th>
+                  <th class="px-3 py-3 text-right">Unit Price</th>
+                  <th class="px-3 py-3 text-right">Total</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                <tr v-for="item in selectedSale?.items || []" :key="item.id" class="hover:bg-gray-50">
+                  <td class="px-3 py-3 font-bold text-gray-700">{{ item.name }}</td>
+                  <td class="px-3 py-3 text-center text-gray-600">{{ item.quantity }}</td>
+                  <td class="px-3 py-3 text-right text-gray-600 font-mono">{{ item.sale_price || 0 }}</td>
+                  <td class="px-3 py-3 text-right font-bold text-gray-800">{{ (parseFloat(item.quantity) * (parseFloat(item.sale_price) || 0)).toFixed(2) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <div class="space-y-2 text-sm">
+              <div class="flex justify-between">
+                <span class="text-gray-600">Subtotal:</span>
+                <span class="font-bold text-gray-800">Rs.{{ (parseFloat(selectedSale?.total_amount) || 0).toFixed(2) }}</span>
+              </div>
+              <div class="border-t border-gray-300 pt-2 flex justify-between text-base">
+                <span class="font-bold text-gray-800">Grand Total:</span>
+                <span class="font-black text-blue-600">Rs.{{ (parseFloat(selectedSale?.total_amount) || 0).toFixed(2) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sticky bottom-0 bg-gray-50 border-t border-gray-200 p-6 flex gap-3 justify-end">
+          <button @click="showViewModal = false" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg font-bold text-sm hover:bg-gray-300">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -258,6 +339,8 @@ let delaySeconds = 0;
 
 const printRef = ref(null);
 const showCanelModal = ref(false);
+const showViewModal = ref(false);
+const selectedSale = ref(null);
 const isLoading = ref(false)
 const isSaving = ref(false)
 const isSearching = ref(false)
@@ -440,6 +523,24 @@ const printSale = async (id) => {
 
 
 /* ---------------- INIT ---------------- */
+const openViewModal = (sale) => {
+  // Fetch full sale data with items using exact same endpoint as print
+  api.get(`/sales/${sale.id}`, { params: { search: sale.id } })
+    .then(res => {
+      const fullSale = res.data.data.data.find(s => s.id === sale.id);
+      if (fullSale) {
+        selectedSale.value = fullSale;
+        showViewModal.value = true;
+      } else {
+        toast.error("Sale not found");
+      }
+    })
+    .catch(e => {
+      toast.error("Error loading sale details");
+      console.error("Error fetching sale", e);
+    });
+};
+
 onMounted(async () => {
   await fetchReturnReasons()
   await fetchSales()

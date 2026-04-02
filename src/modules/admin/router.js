@@ -212,8 +212,13 @@ export default [
         name:'admin.about',
         component: ()=> import('./pages/about/About.vue')
         ,meta: { requiresAuth: true, role: 'admin' } // ✅ added
+      },
+      {
+        path:'backup',
+        name:'admin.backup',
+        component: ()=> import('./pages/backup/Backup.vue')
+        ,meta: { requiresAuth: true, role: 'admin' } // ✅ added
       }
-      ,
     ]
   }
 ]

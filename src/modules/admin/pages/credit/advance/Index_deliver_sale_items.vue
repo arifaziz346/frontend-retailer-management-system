@@ -60,9 +60,14 @@
                   </div>
                 </td>
                 <td class="px-4 py-4 text-center">
-                   <button @click="printDispatchBatch(record)" class="text-blue-500 hover:text-blue-700 transition-colors" title="Print this dispatch only">
-                     <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
-                   </button>
+                   <div class="flex items-center justify-center gap-3">
+                     <button @click="openViewModal(record)" class="text-green-500 hover:text-green-700 transition-colors" title="View invoice details">
+                       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                     </button>
+                     <button @click="printDispatchBatch(record)" class="text-blue-500 hover:text-blue-700 transition-colors" title="Print this dispatch only">
+                       <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                     </button>
+                   </div>
                 </td>
               </tr>
             </tbody>
@@ -110,12 +115,20 @@
                 </td>
               </tr>
             </tbody>
+            <tfoot class="bg-gray-50 border-t-2 border-gray-200 font-bold">
+              <tr>
+                <td class="px-3 py-3 text-gray-800">TOTAL</td>
+                <td class="px-3 py-3 text-center text-gray-800">{{ summaryItems.reduce((sum, item) => sum + parseFloat(item.quantity), 0).toFixed(2) }}</td>
+                <td class="px-3 py-3 text-center text-green-600">{{ summaryItems.reduce((sum, item) => sum + (parseFloat(item.quantity) - parseFloat(item.remaining_to_deliver)), 0).toFixed(2) }}</td>
+                <td class="px-3 py-3 text-right text-red-600">{{ summaryItems.reduce((sum, item) => sum + parseFloat(item.remaining_to_deliver), 0).toFixed(2) }}</td>
+              </tr>
+            </tfoot>
           </table>
         </div>
       </div>
     </BaseModal>
 
-    <BaseModal v-model="showModal" title="Prepare Item Delivery" @save="submitDelivery" :disableSaveBtn="isSaving || !hasSelectedItems">
+    <BaseModal v-model="showDeliverModal" title="Prepare Item Delivery" @save="submitDelivery" :disableSaveBtn="isSaving || !hasSelectedItems">
         <div class="space-y-4">
             <div class="max-h-[350px] overflow-y-auto border border-gray-100 rounded-lg">
                 <table class="w-full text-left text-xs">
@@ -142,7 +155,55 @@
                 </table>
             </div>
             <FormInput v-model="form.delivery_note" label="Vehicle/Note" placeholder="e.g. Driver Ali - Toyota Hilux" />
+            <FormInput v-model="form.created_at" type="date" label="Delivery Date" />
         </div>
+    </BaseModal>
+
+    <BaseModal v-model="showViewModal" title="Invoice Details" :showSaveBtn="false">
+      <div class="space-y-4">
+        <div v-if="selectedRecord && saleObject" class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Dispatch ID</p>
+              <h4 class="text-sm font-bold text-gray-800">#{{ selectedRecord.id }}</h4>
+            </div>
+            <div>
+              <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Date</p>
+              <h4 class="text-sm font-bold text-gray-800">{{ formatDate(selectedRecord.created_at) }}</h4>
+            </div>
+            <div>
+              <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Customer</p>
+              <h4 class="text-sm font-bold text-gray-800">{{ saleObject.customer?.name || 'Walk-in Customer' }}</h4>
+            </div>
+            <div>
+              <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Phone</p>
+              <h4 class="text-sm font-bold text-gray-800">{{ saleObject.customer?.phone || 'N/A' }}</h4>
+            </div>
+          </div>
+        </div>
+
+        <div class="overflow-hidden border border-gray-100 rounded-lg">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-gray-800 text-white font-bold uppercase">
+              <tr>
+                <th class="px-3 py-3">Item Name</th>
+                <th class="px-3 py-3 text-center">Quantity</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              <tr v-for="item in selectedRecord?.items || []" :key="item.id" class="hover:bg-gray-50">
+                <td class="px-3 py-3 font-bold text-gray-700">{{ item.name }}</td>
+                <td class="px-3 py-3 text-center text-gray-600">{{ item.quantity }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div v-if="selectedRecord?.note" class="bg-blue-50 p-3 rounded-lg border border-blue-100">
+          <p class="text-[10px] font-bold uppercase text-blue-400">Delivery Note</p>
+          <p class="text-sm text-blue-900">{{ selectedRecord.note }}</p>
+        </div>
+      </div>
     </BaseModal>
   </div>
 </template>
@@ -168,16 +229,29 @@ const printRef = ref(null)
 const isLoading = ref(true)
 const isSaving = ref(false)
 const showModal = ref(false)
+const showDeliverModal = ref(false)
 const showSummaryModal = ref(false)
+const showViewModal = ref(false)
 const advanceSales = ref([]) 
 const deliveryItems = ref([])
 const summaryItems = ref([])
 const saleObject = ref(null)
+const selectedRecord = ref(null)
 
 const pagination = reactive({ currentPage: 1, lastPage: 1 })
-const form = reactive({ delivery_note: '' })
+const form = reactive({ delivery_note: '', created_at: new Date().toISOString().split('T')[0] })
 
 /* ------------------ UPDATED PRINT LOGIC ------------------ */
+
+// Format date to YYYY-MM-DD
+const formatDateYYYYMMDD = (date) => {
+  if (!date) return new Date().toISOString().split('T')[0];
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 // 1. Prints only the current dispatch items
 const printDispatchBatch = (record) => {
@@ -185,7 +259,7 @@ const printDispatchBatch = (record) => {
   const batchData = {
     ...saleObject.value,
     id: `DISPATCH-#${record.id}`,
-    sale_date: record.created_at,
+    sale_date: formatDateYYYYMMDD(record.created_at),
     items: record.items,
     total_amount: 0,
     total_items: record.items.length
@@ -201,7 +275,7 @@ const printFullSummaryReport = () => {
   const summaryData = {
     ...saleObject.value,
     id: `SUMMARY-SALE#${sale_id.value}`,
-    sale_date: new Date().toLocaleDateString(),
+    sale_date: formatDateYYYYMMDD(new Date()),
     items: summaryItems.value.map(i => ({
       // We customize the name to show the status clearly on the receipt
       name: `${i.name} [Ord:${i.quantity} | Del:${i.quantity - i.remaining_to_deliver}]`,
@@ -261,12 +335,17 @@ const openDeliverModal = async () => {
     const items = res.data?.data || []
     deliveryItems.value = items.filter(i => i.remaining_to_deliver > 0).map(i => ({ ...i, deliver_qty: 0 }))
     if (deliveryItems.value.length === 0) toast.info("Fully delivered.");
-    else showModal.value = true
+    else showDeliverModal.value = true
   } catch (e) {
     toast.error("Failed to load delivery items")
   } finally {
     isLoading.value = false
   }
+}
+
+const openViewModal = (record) => {
+  selectedRecord.value = record
+  showViewModal.value = true
 }
 
 const updateQty = (i, d) => {
@@ -288,13 +367,15 @@ const submitDelivery = async () => {
     const payload = {
       sale_id: sale_id.value,
       note: form.delivery_note,
+      created_at: form.created_at,
       items: validItems.map(i => ({ ...i, quantity: i.deliver_qty }))
     }
     const res = await api.post('/advance/deliver', payload)
     if (res.data.success) {
       toast.success("Delivery recorded")
-      showModal.value = false
+      showDeliverModal.value = false
       form.delivery_note = ''
+      form.created_at = new Date().toISOString().split('T')[0]
       await fetchDeliveryHistory()
     }
   } catch (e) { toast.error("Submission failed") } finally { isSaving.value = false }
