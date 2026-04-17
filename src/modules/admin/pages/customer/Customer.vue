@@ -13,15 +13,13 @@
             <h1 class="text-2xl font-bold text-slate-800">Customers</h1>
             <p class="text-sm text-slate-500">Manage customer records and contact details</p>
           </div>
-          <!-- Search Input -->
           <div>
             <input
               v-model="search"
               @input="onSearch"
               type="text"
               placeholder="Search name or mobile..."
-              class="w-64 px-3 py-2 border border-slate-300 rounded-lg text-sm
-                     focus:ring-2 focus:ring-blue-200 outline-none"
+              class="w-64 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-200 outline-none"
             />
           </div>
         </div>
@@ -47,6 +45,7 @@
                 <th class="px-6 py-4">Name</th>
                 <th class="px-6 py-4">Contact Info</th>
                 <th class="px-6 py-4">NIC Number</th>
+                <th class="px-6 py-4 text-right">Liability</th>  <!-- ← new column -->
                 <th class="px-6 py-4 text-center">Status</th>
                 <th class="px-6 py-4 text-right">Actions</th>
               </tr>
@@ -68,6 +67,18 @@
                   </div>
                 </td>
                 <td class="px-6 py-4">{{ customer.nic || 'N/A' }}</td>
+
+                <!-- Liability cell — highlights in amber when > 0 -->
+                <td class="px-6 py-4 text-right">
+                  <span
+                    :class="Number(customer.liability) > 0
+                      ? 'text-amber-600 font-semibold'
+                      : 'text-slate-400'"
+                  >
+                    {{ formatCurrency(customer.liability) }}
+                  </span>
+                </td>
+
                 <td class="px-6 py-4 text-center">
                   <span
                     :class="customer.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
@@ -91,13 +102,12 @@
           </table>
         </div>
 
-        <!-- Pagination -->
         <Pagination :pagination="state.pagination" @page-change="fetchCustomers" />
       </div>
     </main>
     <div v-else class="flex items-center justify-center h-64">
-       <VueSpinnerDots size="50px" color="#2563eb" />
-       </div>
+      <VueSpinnerDots size="50px" color="#2563eb" />
+    </div>
 
     <!-- Modal -->
     <BaseModal
@@ -157,6 +167,28 @@
           </select>
         </div>
 
+        <!-- Liability Field -->
+        <div class="md:col-span-2">
+          <label class="block text-sm font-semibold text-slate-700 mb-1">
+            Liability (PKR)
+          </label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium">₨</span>
+            <input
+              type="number"
+              v-model="form.liability"
+              min="0"
+              step="0.01"
+              :class="[
+                'w-full pl-8 pr-3 py-2 border rounded-lg text-sm focus:ring-2 outline-none transition-all',
+                errors.liability ? 'border-red-500 ring-red-100' : 'border-slate-300 focus:ring-blue-100'
+              ]"
+              placeholder="0.00"
+            />
+          </div>
+          <p v-if="errors.liability" class="text-red-500 text-xs mt-1">{{ errors.liability[0] }}</p>
+        </div>
+
         <div class="md:col-span-2">
           <label class="block text-sm font-semibold text-slate-700 mb-1">Address</label>
           <textarea
@@ -201,10 +233,20 @@ const form = reactive({
   phone_two: "",
   address: "",
   nic: "",
+  liability: 0,      // ← new
   status: "active",
 });
 
 // ------------------- Helper Functions -------------------
+
+const formatCurrency = (value) => {
+  const num = Number(value) || 0;
+  return new Intl.NumberFormat('en-PK', {
+    style: 'currency',
+    currency: 'PKR',
+    minimumFractionDigits: 0,
+  }).format(num);
+};
 
 const handlePhoneInput = (field) => {
   form[field] = form[field].replace(/\D/g, "");
@@ -212,22 +254,20 @@ const handlePhoneInput = (field) => {
 };
 
 const resetForm = () => {
-  Object.assign(form, { id: null, name: "", phone_one: "", phone_two: "", address: "", nic: "", status: "active" });
+  Object.assign(form, {
+    id: null, name: "", phone_one: "", phone_two: "",
+    address: "", nic: "", liability: 0, status: "active",   // ← liability reset
+  });
   errors.value = {};
 };
 
 // ------------------- API Calls -------------------
 
 const fetchCustomers = async (url = '/customers') => {
-  if(!isSearching.value){
-    isLoading.value = true;
-  }
-  
+  if (!isSearching.value) isLoading.value = true;
   try {
     const response = await api.get(url, { params: { search: search.value || null } });
     state.customers = response.data.data.data;
-    console.log('customers', state.customers);
-
     state.pagination = response.data.data;
   } catch (err) {
     toast.error("Failed to load customers");
@@ -237,13 +277,10 @@ const fetchCustomers = async (url = '/customers') => {
   }
 };
 
-// Debounced search
 const onSearch = () => {
   isSearching.value = true;
   clearTimeout(searchTimeout);
-  searchTimeout = setTimeout(() => {
-    fetchCustomers('/customers');
-  }, 400);
+  searchTimeout = setTimeout(() => fetchCustomers('/customers'), 400);
 };
 
 // ------------------- Modal Actions -------------------
@@ -298,8 +335,6 @@ const deleteCustomer = async (id) => {
     toast.error("Delete failed");
   }
 };
-
-// ------------------- Lifecycle -------------------
 
 onMounted(() => fetchCustomers());
 </script>

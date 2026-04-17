@@ -48,6 +48,13 @@ export default [
         meta: { requiresAuth: true, role: 'admin' }
       },
       {
+        path:'credit-customer-report',
+        name:'admin.credit-customer-report',
+        component: () => import('./pages/credit/Credit_Customer_Report.vue'),
+        meta: { requiresAuth: true, role: 'admin' }
+      }
+      ,
+      {
         path:'advance-sale-items/:id',
         name:'admin.advance-sale-items',
         component: () => import('./pages/credit/advance/Index_deliver_sale_items.vue'),
@@ -145,12 +152,12 @@ export default [
         component: () => import('./pages/account/Index_Account.vue'),
         meta: { requiresAuth: true, role: 'admin' }
       },
-      // {
-      //   path:'account-detail',
-      //   name:'admin.accounts-detail',
-      //   component: () => import('./pages/account/AccountDetail.vue'),
-      //   meta: { requiresAuth: true, role: 'admin' }
-      // },
+      {
+        path:'account-detail/:id',
+        name:'account-detail',
+        component: () => import('./pages/account/AccountDetail.vue'),
+        meta: { requiresAuth: true, role: 'admin' }
+      },
       {
         path:'transactions',
         name:'admin.transactions',

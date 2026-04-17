@@ -25,6 +25,10 @@
           <p class="font-bold text-white text-xs md:text-xl rounded-sm bg-gray-800 p-1 border">Balance: Rs.{{totalDeposit-totalWithdraw}}</p>
         </div>
       </div>
+
+      <div class="flex flex-wrap gap-2 mb-4">
+        <!-- Transfer functionality moved to Transaction page -->
+      </div>
       
       <!-- Table with responsive design -->
       <div v-if="state.transactions.length > 0" class="relative overflow-x-auto shadow-md sm:rounded-lg">
@@ -140,14 +144,11 @@ import VModal from '@/components/VModal.vue';
 import { VueSpinnerDots } from "vue3-spinners";
 import { toast } from '@/utils/toast';
 import { RouterLink,useRoute } from 'vue-router';
-import { useToast } from 'vue-toastification';
 import { formatDate } from '@/utils/formatDate';
 
 import api from '@/plugins/axios';
-import { formatDate } from '@/utils/formatDate';
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-const toast = useToast();
 const route = useRoute();
 const state = reactive({
   transactions: [],
@@ -165,6 +166,7 @@ const state = reactive({
 const showViewModal = ref(false); // New ref for the View modal
 const viewedTransaction = reactive({}); // Store the transaction to view details
 const showModal = ref(false);
+
 const form = reactive({  
   amount: 0,
   profit: 0,
@@ -172,6 +174,12 @@ const form = reactive({
   id: '',
   transaction_type: '',
   hide_transaction_button:''
+});
+
+const transferForm = reactive({
+  amount: '',
+  transaction_date: new Date().toISOString().split('T')[0],
+  description: '',
 });
 
 function viewTransactionModal(transaction) {
@@ -201,9 +209,22 @@ const totalWithdraw = computed(() => {
     .reduce((total, transaction) => total + Number(transaction.amount), 0);
 });
 
+const getStatusClass = (status) => {
+  switch (status) {
+    case 'pending':
+      return 'bg-orange-100 text-orange-800';
+    case 'completed':
+      return 'bg-blue-100 text-blue-800';
+    case 'deposit':
+      return 'bg-green-100 text-green-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
+};
+
 const fetchTransactions = async (url = `account-detail/${route.params.id}`) => {
   try {
-    state.isloading = true
+    state.isLoading = true
 
     const response = await api.get(`${apiBaseUrl}/${url}`)
 
@@ -223,7 +244,7 @@ const fetchTransactions = async (url = `account-detail/${route.params.id}`) => {
   } catch (error) {
     console.log('error fetching transactions', error)
   } finally {
-    state.isloading = false
+    state.isLoading = false
   }
 }
 

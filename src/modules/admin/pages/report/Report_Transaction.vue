@@ -10,43 +10,42 @@
 
     <div class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
   
-  <div class="bg-white border border-emerald-100 rounded-2xl p-4 shadow-sm flex items-center gap-4 transition-transform hover:scale-[1.02]">
-    <div class="w-12 h-12 rounded-full bg-emerald-50 flex-shrink-0 flex items-center justify-center text-emerald-600">
-      <i class="pi pi-arrow-down-left text-xl font-bold"></i>
-    </div>
-    <div class="min-w-0">
-      <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest truncate">Total Deposits</p>
-      <h3 class="text-xl xl:text-2xl font-black text-emerald-600 truncate">
-        Rs. {{ totalDeposit.toLocaleString() }}
-      </h3>
-    </div>
-  </div>
+      <div class="bg-white border border-emerald-100 rounded-2xl p-4 shadow-sm flex items-center gap-4 transition-transform hover:scale-[1.02]">
+        <div class="w-12 h-12 rounded-full bg-emerald-50 flex-shrink-0 flex items-center justify-center text-emerald-600">
+          <i class="pi pi-arrow-down-left text-xl font-bold"></i>
+        </div>
+        <div class="min-w-0">
+          <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest truncate">Total Deposits</p>
+          <h3 class="text-xl xl:text-2xl font-black text-emerald-600 truncate">
+            Rs. {{ totalDeposit.toLocaleString() }}
+          </h3>
+        </div>
+      </div>
 
-  <div class="bg-white border border-rose-100 rounded-2xl p-4 shadow-sm flex items-center gap-4 transition-transform hover:scale-[1.02]">
-    <div class="w-12 h-12 rounded-full bg-rose-50 flex-shrink-0 flex items-center justify-center text-rose-600">
-      <i class="pi pi-arrow-up-right text-xl font-bold"></i>
-    </div>
-    <div class="min-w-0">
-      <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest truncate">Total Withdrawals</p>
-      <h3 class="text-xl xl:text-2xl font-black text-blue-600 truncate">
-        Rs. {{ totalWithdraw.toLocaleString() }}
-      </h3>
-    </div>
-  </div>
+      <div class="bg-white border border-rose-100 rounded-2xl p-4 shadow-sm flex items-center gap-4 transition-transform hover:scale-[1.02]">
+        <div class="w-12 h-12 rounded-full bg-rose-50 flex-shrink-0 flex items-center justify-center text-rose-600">
+          <i class="pi pi-arrow-up-right text-xl font-bold"></i>
+        </div>
+        <div class="min-w-0">
+          <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest truncate">Total Withdrawals</p>
+          <h3 class="text-xl xl:text-2xl font-black text-blue-600 truncate">
+            Rs. {{ totalWithdraw.toLocaleString() }}
+          </h3>
+        </div>
+      </div>
 
-  <div class="bg-white border border-amber-100 rounded-2xl p-4 shadow-sm flex items-center gap-4 transition-transform hover:scale-[1.02] sm:col-span-2 lg:col-span-1">
-    <div class="w-12 h-12 rounded-full bg-amber-50 flex-shrink-0 flex items-center justify-center text-amber-600">
-      <i class="pi pi-times-circle text-xl font-bold"></i>
+      <div class="bg-white border border-amber-100 rounded-2xl p-4 shadow-sm flex items-center gap-4 transition-transform hover:scale-[1.02] sm:col-span-2 lg:col-span-1">
+        <div class="w-12 h-12 rounded-full bg-amber-50 flex-shrink-0 flex items-center justify-center text-amber-600">
+          <i class="pi pi-times-circle text-xl font-bold"></i>
+        </div>
+        <div class="min-w-0">
+          <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest truncate">Total Failed</p>
+          <h3 class="text-xl xl:text-2xl font-black text-rose-600 truncate">
+            Rs. {{ totalFailed.toLocaleString() }}
+          </h3>
+        </div>
+      </div>
     </div>
-    <div class="min-w-0">
-      <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest truncate">Total Failed</p>
-      <h3 class="text-xl xl:text-2xl font-black text-rose-600 truncate">
-        Rs. {{ totalFailed.toLocaleString() }}
-      </h3>
-    </div>
-  </div>
-
-</div>
 
     <div class="max-w-7xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-6">
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
@@ -97,48 +96,50 @@
           </thead>
           <tbody class="divide-y divide-gray-50">
             <tr v-for="(transaction, index) in transactions" :key="transaction.id" class="hover:bg-blue-50/20 transition-colors group">
-  <td class="px-6 py-4 text-xs font-bold text-gray-400">{{ index + 1 }}</td>
-  
-  <td class="px-6 py-4">
-    <span class="font-bold text-gray-700">{{ transaction.account?.name || 'General Account' }}</span>
-  </td>
+              <td class="px-6 py-4 text-xs font-bold text-gray-400">{{ index + 1 }}</td>
+              
+              <td class="px-6 py-4">
+                <div class="flex flex-col">
+                  <span class="font-bold text-gray-700">{{ transaction.account?.account_name || transaction.account?.name || 'General Account' }}</span>
+                  <span class="text-[10px] text-blue-500 font-semibold uppercase tracking-tighter">
+                    {{ transaction.account?.bank_name || 'No Bank Info' }}
+                  </span>
+                </div>
+              </td>
 
-  <td class="px-6 py-4 text-center">
-    <span :class="{
-        'bg-emerald-50 text-emerald-600 border-emerald-100': transaction.transaction_type === 'Deposit',
-        'bg-blue-50 text-blue-600 border-blue-100': transaction.transaction_type === 'Withdraw',
-        'bg-rose-50 text-rose-600 border-rose-100': transaction.transaction_type === 'Failed'
-      }"
-      class="px-3 py-1 rounded-full text-[10px] font-black uppercase border tracking-tighter">
-      {{ transaction.transaction_type }}
-    </span>
-  </td>
+              <td class="px-6 py-4 text-center">
+                <span :class="{
+                    'bg-emerald-50 text-emerald-600 border-emerald-100': transaction.transaction_type === 'Deposit',
+                    'bg-blue-50 text-blue-600 border-blue-100': transaction.transaction_type === 'Withdraw',
+                    'bg-rose-50 text-rose-600 border-rose-100': transaction.transaction_type === 'Failed'
+                  }"
+                  class="px-3 py-1 rounded-full text-[10px] font-black uppercase border tracking-tighter">
+                  {{ transaction.transaction_type }}
+                </span>
+              </td>
 
-  <td class="px-6 py-4">
-    <span :class="{
-        'text-emerald-600': transaction.transaction_type === 'Deposit',
-        'text-blue-600': transaction.transaction_type === 'Withdraw',
-        'text-rose-600': transaction.transaction_type === 'Failed'
-      }" class="font-black">
-      
-      <template v-if="transaction.transaction_type === 'Deposit'">+</template>
-      <template v-else-if="transaction.transaction_type === 'Withdraw'">-</template>
-      <template v-else></template> 
-      
-      Rs. {{ transaction.amount }}
-    </span>
-  </td>
+              <td class="px-6 py-4">
+                <span :class="{
+                    'text-emerald-600': transaction.transaction_type === 'Deposit',
+                    'text-blue-600': transaction.transaction_type === 'Withdraw',
+                    'text-rose-600': transaction.transaction_type === 'Failed'
+                  }" class="font-black">
+                  <template v-if="transaction.transaction_type === 'Deposit'">+</template>
+                  <template v-else-if="transaction.transaction_type === 'Withdraw'">-</template>
+                  Rs. {{ transaction.amount }}
+                </span>
+              </td>
 
-  <td class="px-6 py-4 max-w-xs">
-    <p class="text-xs text-gray-500 truncate" :title="transaction.description">
-        {{ transaction.description || 'No description provided' }}
-    </p>
-  </td>
+              <td class="px-6 py-4 max-w-xs">
+                <p class="text-xs text-gray-500 truncate" :title="transaction.description">
+                    {{ transaction.description || 'No description provided' }}
+                </p>
+              </td>
 
-  <td class="px-6 py-4 text-right">
-    <span class="text-xs font-semibold text-gray-400">{{ transaction.transaction_date }}</span>
-  </td>
-</tr>
+              <td class="px-6 py-4 text-right">
+                <span class="text-xs font-semibold text-gray-400">{{ transaction.transaction_date }}</span>
+              </td>
+            </tr>
             <tr v-if="transactions.length === 0">
               <td colspan="6" class="px-6 py-20 text-center">
                 <div class="flex flex-col items-center">
@@ -159,42 +160,20 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import api from '@/plugins/axios'
 
-/**
- * -------------------------------------------------
- * State
- * -------------------------------------------------
- */
 const isLoading = ref(false)
 const transactions = ref([])
 
-/**
- * -------------------------------------------------
- * Helpers
- * -------------------------------------------------
- */
 const getToday = () => {
   return new Date().toISOString().split('T')[0]
 }
 
-/**
- * -------------------------------------------------
- * Filters (Default: Current Day)
- * -------------------------------------------------
- */
 const filters = reactive({
   start_date: getToday(),
   end_date: getToday(),
   transaction_type: ''
 })
 
-/**
- * -------------------------------------------------
- * Fetch Transactions
- * -------------------------------------------------
- */
 const fetchTransactions = async () => {
-  
-
   try {
     isLoading.value = true
     const { data } = await api.get('/reports/transactions', {
@@ -204,7 +183,6 @@ const fetchTransactions = async () => {
         transaction_type: filters.transaction_type || null
       }
     })
-
     transactions.value = data.data ?? []
   } catch (err) {
     console.error('Transaction fetch failed:', err)
@@ -214,11 +192,6 @@ const fetchTransactions = async () => {
   }
 }
 
-/**
- * -------------------------------------------------
- * Computed Totals
- * -------------------------------------------------
- */
 const totalDeposit = computed(() => {
   return transactions.value
     .filter(t => t.transaction_type === 'Deposit')
@@ -237,12 +210,7 @@ const totalFailed = computed(() => {
     .reduce((total, t) => total + Number(t.amount || 0), 0)
 })
 
-/**
- * -------------------------------------------------
- * Lifecycle
- * -------------------------------------------------
- */
 onMounted(() => {
-  fetchTransactions() // Default: current day report
+  fetchTransactions()
 })
 </script>

@@ -181,7 +181,7 @@
         <FormInput id="contact_person" label="Contact Person" v-model="form.contact_person" :error="errors.contact_person" />
         <!-- <FormInput id="phone" label="Phone" v-model="form.phone" :error="errors.phone" /> -->
         <FormInput id="company_name" label="Company Name" v-model="form.company_name" :error="errors.company_name" />
-        <FormInput id="account_number" label="Account No." v-model="form.account_number" :error="errors.account_number" />
+        <FormInput id="account_number" label="Bank-Account" v-model="form.account_number" :error="errors.account_number" />
         <FormInput id="liabilities" label="Liabilities" v-model="form.liabilities" :error="errors.liabilities" type="number" />
         <FormInput id="nic" label="NIC" v-model="form.nic" :error="errors.nic" />
         <FormInput id="address" label="Address" v-model="form.address" :error="errors.address" />

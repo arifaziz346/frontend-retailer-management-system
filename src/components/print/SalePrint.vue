@@ -81,8 +81,8 @@ const print = (saleData) => {
           <td style="padding-bottom:1px"><b>${item.name}</b></td>
         </tr>
         <tr>
-          <td style="padding-top:1px; font-size:14px; font-weight:bold; color:#000">
-            Qty: ${qty} | Price: ${price} | Total: ${total}
+          <td style="padding-top:1px; font-size:17px; font-weight:900; color:#000; letter-spacing:0.5px">
+            <b>Qty: ${qty} | Price: ${price} | Total: ${total}</b>
           </td>
         </tr>`;
             }

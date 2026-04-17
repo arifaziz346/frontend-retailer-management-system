@@ -19,24 +19,35 @@
               <p class="text-xs text-gray-500 font-medium">Customer ID: #{{ customer_id }}</p>
             </div>
           </div>
-          
+
           <button @click.prevent="viewPayment(customer_id)" class="hidden sm:flex h-10 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-sm transition-all items-center gap-2 shadow-sm">
             <span>Receive Payment</span>
           </button>
         </div>
 
-        <div class="grid grid-cols-3 gap-2 sm:gap-4">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
           <div class="h-16 flex flex-col justify-center px-3 rounded-lg border border-red-100 bg-red-50/30">
-            <p class="text-[10px] uppercase font-bold text-red-400">Credit</p>
-            <p class="text-sm sm:text-base font-black text-red-700">Rs.{{ state.total_credit }}</p>
+            <p class="text-[10px] uppercase font-bold text-red-400">Total Debt (Cr+Lib)</p>
+            <p class="text-sm sm:text-base font-black text-red-700">Rs.{{ totalDebt }}</p>
           </div>
+
           <div class="h-16 flex flex-col justify-center px-3 rounded-lg border border-green-100 bg-green-50/30">
-            <p class="text-[10px] uppercase font-bold text-green-400">Paid</p>
+            <p class="text-[10px] uppercase font-bold text-green-400">Total Paid</p>
             <p class="text-sm sm:text-base font-black text-green-700">Rs.{{ state.total_paid }}</p>
           </div>
+
+          <div class="h-16 flex flex-col justify-center px-3 rounded-lg border border-amber-100 bg-amber-50/30">
+            <p class="text-[10px] uppercase font-bold text-amber-400">Liability</p>
+            <p class="text-sm sm:text-base font-black text-amber-700">
+              Rs.{{ formattedLiability }}
+            </p>
+          </div>
+
           <div class="h-16 flex flex-col justify-center px-3 rounded-lg border border-blue-100 bg-blue-600 shadow-sm">
-            <p class="text-[10px] uppercase font-bold text-blue-100">Due</p>
-            <p class="text-sm sm:text-base font-black text-white">Rs.{{ state.total_credit - state.total_paid }}</p>
+            <p class="text-[10px] uppercase font-bold text-blue-100">Net Due Balance</p>
+            <p class="text-sm sm:text-base font-black text-white">
+              Rs.{{ netBalance }}
+            </p>
           </div>
         </div>
 
@@ -47,14 +58,14 @@
     </div>
 
     <div class="flex overflow-x-auto gap-2 pb-4 no-scrollbar">
-      <button 
+      <button
         v-for="tab in invoiceTabs" :key="tab.value"
         @click="state.activeFilter = tab.value"
         :class="[
           'h-10 px-4 flex-shrink-0 rounded-lg text-xs font-bold transition-all border shrink-0',
-          state.activeFilter === tab.value 
-          ? 'bg-gray-900 border-gray-900 text-white shadow-sm' 
-          : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
+          state.activeFilter === tab.value
+            ? 'bg-gray-900 border-gray-900 text-white shadow-sm'
+            : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
         ]"
       >
         {{ tab.label }}
@@ -81,40 +92,45 @@
                 <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-amber-100 text-amber-700 uppercase">Hold</span>
               </td>
               <td class="px-4 py-3 text-right">
-                <span class="text-sm font-bold text-gray-900">Rs.{{ sale.total - (sale.discount || 0) }}</span>
+                <span class="text-sm font-bold text-gray-900">Rs.{{ sale.total }}</span>
               </td>
               <td class="px-4 py-3">
                 <div v-if="sale.cancel == null" class="flex items-center justify-center gap-2">
-                  <button @click.prevent="openViewModal(sale)" class="w-8 h-8 flex items-center justify-center text-green-600 bg-green-50 rounded-md border border-green-100 hover:bg-green-100" title="View invoice details">
+                  <!-- View Button -->
+                  <button @click.prevent="openViewModal(sale)" class="w-8 h-8 flex items-center justify-center text-green-600 bg-green-50 rounded-md border border-green-100 hover:bg-green-100" title="View">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                   </button>
-                  <button @click.prevent="printSale(sale.id)" class="w-8 h-8 flex items-center justify-center text-blue-600 bg-blue-50 rounded-md border border-blue-100 hover:bg-blue-100" title="Print invoice">
+
+                  <!-- Print Button -->
+                  <button @click.prevent="printSale(sale.id)" class="w-8 h-8 flex items-center justify-center text-blue-600 bg-blue-50 rounded-md border border-blue-100 hover:bg-blue-100" title="Print">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
                   </button>
-                  <button v-if="state.activeFilter === 2"
-                  @click="deliverItem(sale.id)"
-                  class="h-8 px-3 text-[10px] font-bold bg-green-600 text-white rounded-md hover:bg-green-700">
-                    Deliver
+
+                  <!-- Deliver Button — only shown on Advance Holds tab -->
+                  <button
+                    v-if="state.activeFilter === 2"
+                    @click.prevent="deliverSale(sale.id)"
+                    class="w-8 h-8 flex items-center justify-center text-purple-600 bg-purple-50 rounded-md border border-purple-100 hover:bg-purple-100"
+                    title="Deliver"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                    </svg>
                   </button>
-                </div>
-                <div v-else class="text-center">
-                  <span class="text-[9px] font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded uppercase">Void</span>
                 </div>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
-
       <div v-else class="py-16 flex flex-col items-center justify-center text-center">
-        <svg class="w-12 h-12 text-gray-200 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
         <p class="text-sm font-bold text-gray-400">No Transactions Found</p>
       </div>
     </div>
 
     <SalePrint ref="printRef" />
 
-    <!-- Invoice View Modal -->
+    <!-- View Invoice Modal -->
     <div v-if="showViewModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div class="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between">
@@ -125,64 +141,29 @@
         </div>
 
         <div class="p-6 space-y-6">
-          <div v-if="selectedSale && state.customer" class="bg-gray-50 p-4 rounded-xl border border-gray-200">
-            <div class="grid grid-cols-2 gap-4 mb-4">
-              <div>
-                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Invoice ID</p>
-                <h4 class="text-sm font-bold text-gray-800">#{{ selectedSale.id }}</h4>
-              </div>
-              <div>
-                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Date</p>
-                <h4 class="text-sm font-bold text-gray-800">{{ formatDate(selectedSale.created_at) }}</h4>
-              </div>
-              <div>
-                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Customer</p>
-                <h4 class="text-sm font-bold text-gray-800">{{ state.customer.name }}</h4>
-              </div>
-              <div>
-                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Phone</p>
-                <h4 class="text-sm font-bold text-gray-800">{{ state.customer.phone || 'N/A' }}</h4>
-              </div>
-            </div>
-          </div>
-
-          <div class="overflow-hidden border border-gray-100 rounded-lg">
-            <table class="w-full text-left text-xs">
-              <thead class="bg-gray-800 text-white font-bold uppercase">
-                <tr>
-                  <th class="px-3 py-3">Item Name</th>
-                  <th class="px-3 py-3 text-center">Quantity</th>
-                  <th class="px-3 py-3 text-right">Unit Price</th>
-                  <th class="px-3 py-3 text-right">Total</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-100">
-                <tr v-for="item in selectedSale?.items || []" :key="item.id" class="hover:bg-gray-50">
-                  <td class="px-3 py-3 font-bold text-gray-700">{{ item.name }}</td>
-                  <td class="px-3 py-3 text-center text-gray-600">{{ item.quantity }}</td>
-                  <td class="px-3 py-3 text-right text-gray-600 font-mono">{{ item.sale_price || 0 }}</td>
-                  <td class="px-3 py-3 text-right font-bold text-gray-800">{{ (parseFloat(item.quantity) * (parseFloat(item.sale_price) || 0)).toFixed(2) }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
           <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
             <div class="space-y-2 text-sm">
               <div class="flex justify-between">
-                <span class="text-gray-600">Subtotal:</span>
+                <span class="text-gray-600">Sale Total:</span>
                 <span class="font-bold text-gray-800">Rs.{{ (parseFloat(selectedSale?.total) || 0).toFixed(2) }}</span>
               </div>
+              <div class="flex justify-between">
+                <span class="text-amber-600">Customer Liability:</span>
+                <span class="font-bold text-amber-600">+ Rs.{{ formattedLiability }}</span>
+              </div>
+              <div class="flex justify-between border-t pt-2">
+                <span class="text-gray-600 font-bold">Accumulated Debt:</span>
+                <span class="font-bold text-red-600">Rs.{{ totalDebt }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-green-600">Total Paid to Date:</span>
+                <span class="font-bold text-green-600">- Rs.{{ state.total_paid }}</span>
+              </div>
               <div class="border-t border-gray-300 pt-2 flex justify-between text-base">
-                <span class="font-bold text-gray-800">Grand Total:</span>
-                <span class="font-black text-blue-600">Rs.{{ (parseFloat(selectedSale?.total) || 0).toFixed(2) }}</span>
+                <span class="font-bold text-gray-800">Net Balance Due:</span>
+                <span class="font-black text-blue-600">Rs.{{ netBalance }}</span>
               </div>
             </div>
-          </div>
-
-          <div v-if="selectedSale?.note" class="bg-blue-50 p-3 rounded-lg border border-blue-100">
-            <p class="text-[10px] font-bold uppercase text-blue-400">Note</p>
-            <p class="text-sm text-blue-900">{{ selectedSale.note }}</p>
           </div>
         </div>
 
@@ -193,12 +174,41 @@
         </div>
       </div>
     </div>
+
+    <!-- Deliver Confirmation Modal -->
+    <div v-if="showDeliverModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full">
+        <div class="p-6">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
+              <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-gray-900">Confirm Delivery</h3>
+              <p class="text-xs text-gray-500 mt-0.5">Sale #{{ deliverSaleId }}</p>
+            </div>
+          </div>
+          <p class="text-sm text-gray-600 mb-6">Are you sure you want to mark this advance hold as <span class="font-bold text-purple-600">Delivered</span>? This action cannot be undone.</p>
+          <div class="flex gap-3 justify-end">
+            <button @click="showDeliverModal = false" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-bold text-sm hover:bg-gray-200 transition-all">
+              Cancel
+            </button>
+            <button @click="confirmDeliver" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-bold text-sm transition-all flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+              Deliver
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import api from '@/plugins/axios';   
-import { onMounted, reactive, ref, watch } from 'vue';
+import api from '@/plugins/axios';
+import { onMounted, reactive, ref, watch, computed } from 'vue';
 import SalePrint from '@/components/print/SalePrint.vue';
 import { formatDate } from '@/utils/formatDate';
 import { VueSpinnerDots } from "vue3-spinners";
@@ -210,10 +220,12 @@ const route = useRoute();
 const customer_id = ref(route.params.id);
 const isLoading = ref(false);
 const showViewModal = ref(false);
+const showDeliverModal = ref(false);
 const selectedSale = ref(null);
+const deliverSaleId = ref(null);
 
 const invoiceTabs = [
-  { label: 'Standard Credit', value: 1 }, // Changed value to 1 to match your logic
+  { label: 'Standard Credit', value: 1 },
   { label: 'Advance Holds', value: 2 }
 ];
 
@@ -222,18 +234,31 @@ const state = reactive({
   sales: [],
   customer: {},
   total_credit: 0,
-  total_paid: 0
+  total_paid: 0,
 });
 
-// 🟢 FIX: Use a watcher instead of a computed property for API calls
+// 1. Liability formatting
+const formattedLiability = computed(() => {
+  return (parseFloat(state.customer.liability) || 0).toFixed(2);
+});
+
+// 2. Total Debt = Total Credit Sales + Liability
+const totalDebt = computed(() => {
+  const credit = parseFloat(state.total_credit) || 0;
+  const liability = parseFloat(state.customer.liability) || 0;
+  return (credit + liability).toFixed(2);
+});
+
+// 3. Net Balance = (Credit + Liability) - Payments
+const netBalance = computed(() => {
+  const debt = parseFloat(totalDebt.value) || 0;
+  const paid = parseFloat(state.total_paid) || 0;
+  return (debt - paid).toFixed(2);
+});
+
 watch(() => state.activeFilter, (newVal) => {
-  if (newVal === 1) {
-    console.log('credits-customer',state.sales);
-    fetchCreditsCustomer();
-  } else if (newVal === 2) {
-    console.log('Adcance-credits-customer',state.sales);
-    fetchSalesAdvanceCreditCustomer();
-  }
+  if (newVal === 1) fetchCreditsCustomer();
+  else if (newVal === 2) fetchSalesAdvanceCreditCustomer();
 });
 
 onMounted(() => {
@@ -259,21 +284,15 @@ const fetchCreditsCustomer = async () => {
 const fetchSalesAdvanceCreditCustomer = async () => {
   isLoading.value = true;
   try {
-    // Note: Adjusted URL to match your route group prefix
     const res = await api.get(`credit/customer/advance-hold/${customer_id.value}`);
     const data = res.data.data;
     state.sales = data.Sales || [];
-    // state.customer = data.Customer || {};
-    // state.total_credit = data.CreditDetail?.total_credit || 0;
-    // state.total_paid = data.CreditDetail?.total_paid || 0;
   } catch (err) {
     console.error('Fetch Error:', err);
   } finally {
     isLoading.value = false;
   }
 };
-
-const deliverItem = (id) =>router.push({ name: "admin.advance-sale-items", params: { id } })
 
 const viewPayment = (id) => router.push({ name: "admin.customer-payments", params: { id } });
 const goBack = () => router.go(-1);
@@ -283,11 +302,12 @@ const printSale = async (id) => {
     const res = await api.get("/sales", { params: { search: id } });
     const sale = res.data.data.data.find(s => s.id === id);
     if (sale && printRef.value) printRef.value.print(sale);
-  } catch (e) { console.error("Print error", e); }
+  } catch (e) {
+    console.error("Print error", e);
+  }
 };
 
 const openViewModal = (sale) => {
-  // Fetch full sale data with items
   api.get("/sales", { params: { search: sale.id } })
     .then(res => {
       const fullSale = res.data.data.data.find(s => s.id === sale.id);
@@ -295,7 +315,27 @@ const openViewModal = (sale) => {
         selectedSale.value = fullSale;
         showViewModal.value = true;
       }
-    })
-    .catch(e => console.error("Error fetching sale", e));
+    });
 };
+
+// Opens the deliver confirmation modal
+const deliverSale = (id) => {
+  deliverSaleId.value = id;
+  router.push({ name: 'admin.advance-sale-items', params: { id } });
+};
+
+// Called when user confirms delivery in the modal
+// const confirmDeliver = async () => {
+//   isLoading.value = true;
+//   showDeliverModal.value = false;
+//   try {
+//     await api.post(`/sales/deliver/${deliverSaleId.value}`);
+//     await fetchSalesAdvanceCreditCustomer(); // refresh the list
+//   } catch (err) {
+//     console.error('Deliver error:', err);
+//   } finally {
+//     isLoading.value = false;
+//     deliverSaleId.value = null;
+//   }
+// };
 </script>

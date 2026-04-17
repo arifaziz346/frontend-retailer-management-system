@@ -47,8 +47,8 @@
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-6 bg-slate-50/50">
-      <div 
-        v-for="col in columns.slice(0, 4)" 
+      <!-- <div 
+        v-for="col in columns.slice(0, 9)" 
         :key="col.key"
         class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm"
       >
@@ -56,7 +56,7 @@
         <div class="text-lg font-extrabold text-slate-900 mt-1 truncate">
           {{ formatCurrency(data[col.key]) }}
         </div>
-      </div>
+      </div> -->
     </div>
 
     <div class="overflow-x-auto">

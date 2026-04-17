@@ -21,13 +21,15 @@
           </nav>
         </div>
 
-        <button
-          @click="openCreateModal()"
-          class="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white rounded-xl shadow-md transition-all font-bold text-sm"
-        >
-          <i class="pi pi-plus text-xs"></i>
-          <span>Add Transaction</span>
-        </button>
+        <div class="flex gap-2">
+          <button
+            @click="openCreateModal()"
+            class="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white rounded-xl shadow-md transition-all font-bold text-sm"
+          >
+            <i class="pi pi-plus text-xs"></i>
+            <span>Add Transaction</span>
+          </button>
+        </div>
       </div>
     </header>
 
@@ -59,6 +61,7 @@
                 <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Account</th>
                 <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Amount</th>
                 <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Type</th>
+                <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Status</th>
                 <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Note</th>
                 <th class="px-6 py-4 text-center text-[11px] font-bold text-slate-500 uppercase tracking-widest">Actions</th>
               </tr>
@@ -78,6 +81,14 @@
                   >
                     <span class="w-1 h-1 rounded-full bg-current"></span>
                     {{ transaction.transaction_type || 'N/A' }}
+                  </span>
+                </td>
+                <td class="px-6 py-4">
+                  <span
+                    :class="getStatusClass(transaction.status)"
+                    class="px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                  >
+                    {{ transaction.status || 'completed' }}
                   </span>
                 </td>
                 <td class="px-6 py-4 text-sm text-slate-500 max-w-[150px] truncate italic">{{ transaction.description || '-' }}</td>
@@ -162,6 +173,35 @@
           <p v-if="errors?.transaction_type" class="text-[11px] text-red-500 font-bold mt-1 ml-1">{{ cleanError(errors.transaction_type) }}</p>
         </div>
 
+        <!-- <div>
+  <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 block ml-1">Status</label>
+  <div class="grid grid-cols-2 gap-2">
+    <button 
+      v-for="status in ['completed', 'pending']" 
+      :key="status"
+      type="button"
+      @click="form.status = status"
+      :disabled="form.transaction_type === 'Failed'"
+      :class="[
+        'py-2 text-xs font-bold rounded-lg border transition-all',
+        form.status === status ? 'bg-green-600 border-green-600 text-white shadow-md' : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300',
+        form.transaction_type === 'Failed' ? 'opacity-50 cursor-not-allowed' : ''
+      ]"
+    >
+      {{ status }}
+    </button>
+    
+    <button 
+      v-if="form.transaction_type === 'Failed'"
+      type="button"
+      class="col-span-2 py-2 text-xs font-bold rounded-lg border bg-red-600 border-red-600 text-white shadow-md"
+    >
+      failed
+    </button>
+  </div>
+  <p v-if="errors?.status" class="text-[11px] text-red-500 font-bold mt-1 ml-1">{{ cleanError(errors.status) }}</p>
+</div> -->
+
         <FormInput label="Note / Reference" v-model="form.description" placeholder="Optional details..." />
       </div>
     </BaseModal>
@@ -169,7 +209,7 @@
 </template>
 
 <script setup>
-import { reactive, ref, onMounted } from 'vue'
+import { reactive, ref, onMounted,watch } from 'vue'
 import api from '@/plugins/axios'
 import { formatDate } from '@/utils/helper'
 import { cleanError } from '@/utils/stringHelpers'
@@ -205,7 +245,8 @@ const form = reactive({
   amount: '',
   profit: '',
   description: '',
-  transaction_date:''
+  transaction_date:'',
+  // status: 'completed'
 })
 
 const errors = reactive({})
@@ -296,10 +337,22 @@ const resetForm = () => {
     amount: '',
     profit: '',
     description: '',
-    transaction_date:''
+    transaction_date:'',
+    // status: 'completed'
   })
   Object.keys(errors).forEach(k => delete errors[k])
 }
+
+const getStatusClass = (status) => {
+  switch (status) {
+    case 'pending':
+      return 'bg-orange-100 text-orange-800';
+    case 'completed':
+      return 'bg-blue-100 text-blue-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
+};
 
 const viewTransactionDetail = (transaction) => {
   Object.assign(form, transaction)
@@ -309,6 +362,15 @@ const viewTransactionDetail = (transaction) => {
   showModal.value = true;
 };
 
+/* ---------------- WATCHERS ---------------- */
+watch(() => form.transaction_type, (newType) => {
+  if (newType === 'Failed') {
+    form.status = 'failed'
+  } else if (form.status === 'failed') {
+    // Optional: Reset to complete if they switch back from Failed to Deposit/Withdraw
+    form.status = 'completed'
+  }
+})
 
 onMounted(() => {
   fetchTransactions()

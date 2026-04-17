@@ -1,7 +1,7 @@
 <template>
-  <div class="min-h-screen bg-slate-50 p-4 lg:p-8">
+  <div class="min-h-screen bg-slate-50 p-4 lg:p-8 relative">
     <div
-      v-if="isLoading"
+      v-show="isLoading"
       class="fixed inset-0 flex items-center justify-center bg-slate-900/20 backdrop-blur-sm z-50 transition-all"
     >
       <div class="bg-white p-8 rounded-2xl shadow-2xl flex flex-col items-center border border-slate-100">
@@ -12,14 +12,14 @@
       </div>
     </div>
 
-    <div v-else class="max-w-7xl mx-auto space-y-6">
+    <div class="max-w-7xl mx-auto space-y-6">
       <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <Report
           :data="reportData"
           :columns="columns"
+          :isLoading="isLoading"
           @filter="fetchReport"
           title="Executive Financial Summary"
-          :isLoading="isLoading"
         />
       </div>
     </div>
@@ -39,7 +39,7 @@ const columns = [
   { label: 'Total Sales', key: 'sale', icon: 'trending-up' },
   { label: 'Profit', key: 'profit', icon: 'dollar-sign' },
   { label: 'Expenses', key: 'expense', icon: 'credit-card' },
-  // { label: 'Discounts', key: 'discount', icon: 'percent' },
+  {label:'Credit Payments', key: 'credit_payments', icon: 'dollar-sign' },
   { label: 'Credit (Cust)', key: 'credit_customer', icon: 'users' },
   { label: 'Cash Only', key: 'cash_only_sale', icon: 'dollar-sign' },
   { label: 'Withdrawals', key: 'account_withdraw', icon: 'arrow-up-right' },
@@ -50,10 +50,10 @@ const columns = [
 const fetchReport = async (filters) => {
   isLoading.value = true;
   try {
+    // API call remains the same
     const { data } = await api.get('/reports/all', { params: filters });
     reportData.value = data;
-
-    console.log('print-report',data)
+    console.log('Data Refreshed:', data);
   } catch (error) {
     console.error('Report error:', error);
   } finally {

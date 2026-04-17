@@ -124,7 +124,13 @@ const menu = ref([
       { name: 'All', route: '/admin/report-all'},
     ]
   },
-  { name: 'Khata', route: '/admin/credit-customers' },
+  { name: 'Khata',
+    open:false,
+    children:[
+      { name: 'Khata', route: '/admin/credit-customers' },
+      { name: 'Khata-Report', route: '/admin/credit-customer-report' },
+    ]
+    },
 
   // <!------------Expense--------->
   {
@@ -151,7 +157,7 @@ const menu = ref([
   { name: 'Biography', route: '/admin/biography' },
   { name: 'Admins', route: '/admin/admins' },
   { name: 'About', route: '/admin/about' },
-  { name: 'Backup', route: '/backup/backup' },
+  { name: 'Backup', route: '/admin/backup' },
 ])
 
 /* ---------------- METHODS ---------------- */

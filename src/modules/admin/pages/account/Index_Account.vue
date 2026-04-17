@@ -88,6 +88,13 @@
               <td class="px-6 py-4">
                 <div class="flex justify-center items-center gap-2">
                   <button
+                    @click="viewAccountDetail(account.id)"
+                    class="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-all"
+                    title="View Account Details"
+                  >
+                    <i class="pi pi-eye text-sm"></i>
+                  </button>
+                  <button
                     @click="editAccount(account)"
                     class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
                     title="Edit Account"
